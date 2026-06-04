@@ -1,21 +1,35 @@
-// Student page logic - handles attendance marking
-
 const studentName = document.getElementById('studentName');
 const studentIndex = document.getElementById('studentIndex');
-const courseSelect = document.getElementById('courseSelect');
 const submitBtn = document.getElementById('submitBtn');
 const messageDiv = document.getElementById('message');
 const sessionInfo = document.getElementById('sessionInfo');
+const courseDisplay = document.getElementById('courseDisplay');
 
 // Get session from URL
 const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get('session');
 const courseFromUrl = urlParams.get('course');
 
-// Pre-select course from QR
-if (courseFromUrl && courseSelect) {
-    courseSelect.value = courseFromUrl;
-    courseSelect.disabled = true;
+// Display course name
+if (courseFromUrl && courseDisplay) {
+    const courseNames = {
+        'CS101': 'Computer Science 101',
+        'MATH201': 'Mathematics 201',
+        'ENG101': 'English 101',
+        'PHYS101': 'Physics 101',
+        'CHEM101': 'Chemistry 101',
+        'BUS101': 'Business 101'
+    };
+    courseDisplay.value = courseNames[courseFromUrl] || courseFromUrl;
+}
+
+function showMessage(element, text, type) {
+    if (!element) return;
+    element.textContent = text;
+    element.className = `message ${type}`;
+    setTimeout(() => {
+        element.className = 'message';
+    }, 5000);
 }
 
 // Check session status on load
@@ -48,7 +62,6 @@ async function checkSessionStatus() {
 async function submitAttendance() {
     const name = studentName.value.trim();
     const index = studentIndex.value.trim();
-    const course = courseSelect.value;
     
     // Validation
     if (!name) {
@@ -60,12 +73,6 @@ async function submitAttendance() {
     if (!index) {
         showMessage(messageDiv, 'Please enter your index number', 'error');
         studentIndex.focus();
-        return;
-    }
-    
-    if (!course) {
-        showMessage(messageDiv, 'Please select a course', 'error');
-        courseSelect.focus();
         return;
     }
     
@@ -87,7 +94,7 @@ async function submitAttendance() {
             },
             body: JSON.stringify({
                 sessionId: sessionId,
-                course: course,
+                course: courseFromUrl,
                 name: name,
                 index: index,
                 timestamp: new Date().toISOString()
