@@ -52,6 +52,24 @@
     animation: pulse 2s infinite;
 }
 
+.input-group input.error {
+    border-color: #ef4444;
+}
+
+.field-error {
+    color: #ef4444;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+}
+
+.input-group input:focus {
+    border-color: var(--primary-500);
+}
+
+.input-group input.error:focus {
+    border-color: #ef4444;
+}
+
 @keyframes pulse {
     0% { opacity: 0.5; transform: scale(0.8); }
     100% { opacity: 1; transform: scale(1.2); }

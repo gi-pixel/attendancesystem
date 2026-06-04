@@ -58,20 +58,103 @@ async function checkSessionStatus() {
     }
 }
 
+function validateIndexNumber(index) {
+    // Remove any spaces
+    index = index.trim();
+    
+    // Check if empty
+    if (!index) {
+        return { valid: false, message: 'Please enter your index number' };
+    }
+    
+    // Check if contains only digits (allow letters? adjust if your index has letters)
+    if (!/^\d+$/.test(index)) {
+        return { valid: false, message: 'Index number must contain only digits' };
+    }
+    
+    // Check length (adjust min/max based on your institution)
+    if (index.length < 10) {
+        return { valid: false, message: 'Index number is too short (minimum 10 digits)' };
+    }
+    
+    if (index.length > 10) {
+        return { valid: false, message: 'Index number is too long (maximum 10 digits)' };
+    }
+    
+    return { valid: true, message: '' };
+}
+
+// Validate name
+function validateName(name) {
+    name = name.trim();
+    
+    if (!name) {
+        return { valid: false, message: 'Please enter your full name' };
+    }
+    
+    if (name.length < 3) {
+        return { valid: false, message: 'Name must be at least 3 characters' };
+    }
+    
+    if (name.length > 60) {
+        return { valid: false, message: 'Name is too long (maximum 60 characters)' };
+    }
+    
+    return { valid: true, message: '' };
+}
+
+// Real-time validation feedback
+function setupRealTimeValidation() {
+    if (studentName) {
+        studentName.addEventListener('input', function() {
+            const result = validateName(this.value);
+            showFieldError(this, result.valid ? '' : result.message);
+        });
+    }
+    
+    if (studentIndex) {
+        studentIndex.addEventListener('input', function() {
+            const result = validateIndexNumber(this.value);
+            showFieldError(this, result.valid ? '' : result.message);
+        });
+    }
+}
+
+function showFieldError(field, message) {
+    // Remove existing error message
+    const existingError = field.parentElement.querySelector('.field-error');
+    if (existingError) existingError.remove();
+    
+    if (message) {
+        field.style.borderColor = '#ef4444';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        errorDiv.style.cssText = 'color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem;';
+        field.parentElement.appendChild(errorDiv);
+    } else {
+        field.style.borderColor = '';
+    }
+}
+
+
 // Submit attendance
 async function submitAttendance() {
     const name = studentName.value.trim();
     const index = studentIndex.value.trim();
     
-    // Validation
-    if (!name) {
-        showMessage(messageDiv, 'Please enter your full name', 'error');
+    // Validate name
+    const nameValidation = validateName(name);
+    if (!nameValidation.valid) {
+        showMessage(messageDiv, nameValidation.message, 'error');
         studentName.focus();
         return;
     }
     
-    if (!index) {
-        showMessage(messageDiv, 'Please enter your index number', 'error');
+    // Validate index number
+    const indexValidation = validateIndexNumber(index);
+    if (!indexValidation.valid) {
+        showMessage(messageDiv, indexValidation.message, 'error');
         studentIndex.focus();
         return;
     }
@@ -81,7 +164,7 @@ async function submitAttendance() {
         return;
     }
     
-    // Disable button during submission
+    // Rest of your submit code...
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
     showMessage(messageDiv, 'Recording attendance...', 'info');
@@ -104,9 +187,12 @@ async function submitAttendance() {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showMessage(messageDiv, ` Attendance recorded for ${name}`, 'success');
+            showMessage(messageDiv, `Attendance recorded for ${name}`, 'success');
             studentName.value = '';
             studentIndex.value = '';
+            // Clear any field errors
+            showFieldError(studentName, '');
+            showFieldError(studentIndex, '');
         } else {
             showMessage(messageDiv, data.message || 'Failed to record attendance', 'error');
         }
@@ -139,3 +225,4 @@ if (studentName) {
 
 // Check session status on load
 checkSessionStatus();
+setupRealTimeValidation();
