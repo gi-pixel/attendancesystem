@@ -1,6 +1,6 @@
-import { GoogleSpreadsheet } from 'google-spreadsheet';
+const jwt = require('jsonwebtoken');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -10,30 +10,66 @@ export default async function handler(req, res) {
     const expiresAt = new Date(Date.now() + duration * 60000).toISOString();
     
     try {
-        const doc = new GoogleSpreadsheet(process.env.SPREADSHEET_ID);
-        await doc.useServiceAccountAuth({
-            client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        });
+        const token = await getAccessToken();
         
-        await doc.loadInfo();
-        
-        const sessionsSheet = doc.sheetsByTitle['sessions'];
-        await sessionsSheet.addRow({
-            sessionId,
-            course,
-            expiresAt,
-            createdAt: new Date().toISOString()
-        });
+        // Append to sessions sheet
+        await appendToSheet(token, process.env.SPREADSHEET_ID, 'sessions', [
+            [sessionId, course, expiresAt, new Date().toISOString()]
+        ]);
         
         res.status(200).json({
             success: true,
             sessionId,
-            expiresAt,
-            url: `${process.env.VERCEL_URL}/index.html?session=${sessionId}&course=${course}`
+            expiresAt
         });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
+};
+
+async function getAccessToken() {
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    
+    const payload = {
+        iss: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        scope: 'https://www.googleapis.com/auth/spreadsheets',
+        aud: 'https://oauth2.googleapis.com/token',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+    };
+    
+    const assertion = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+    
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            assertion: assertion
+        })
+    });
+    
+    const data = await response.json();
+    return data.access_token;
+}
+
+async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}:append?valueInputOption=RAW`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values })
+    });
+    
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Sheets API error: ${error}`);
+    }
+    
+    return response.json();
 }

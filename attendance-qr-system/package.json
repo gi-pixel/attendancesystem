@@ -1,5 +1,9 @@
 {
-  "dependencies": {
-    "google-spreadsheet": "^5.3.0"
-  }
+    "name": "class-track",
+    "version": "1.0.0",
+    "description": "QR Code Attendance System",
+    "main": "index.html",
+    "dependencies": {
+        "jsonwebtoken": "^9.0.0"
+    }
 }
