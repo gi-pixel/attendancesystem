@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mark Attendance | Student Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/student.css">
+</head>
+<body>
+
+<div class="attendance-card">
+    <div class="card-header">
+        <div class="header-icon">📋</div>
+        <h1>Mark Attendance</h1>
+        <p>Scan QR code to access this page</p>
+    </div>
+    
+    <div class="session-info" id="sessionInfo">
+        <div class="status-dot"></div>
+        <span id="sessionStatusText">Loading session...</span>
+    </div>
+    
+    <div class="card-body">
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="studentName" placeholder="Enter your full name" autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <label>Index Number / Student ID</label>
+            <input type="text" id="studentIndex" placeholder="Enter your index number" autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <label>Course</label>
+            <select id="courseSelect">
+                <option value="">Select course</option>
+                <option value="CS101">Computer Science 101</option>
+                <option value="MATH201">Mathematics 201</option>
+                <option value="ENG101">English 101</option>
+                <option value="PHYS101">Physics 101</option>
+                <option value="CHEM101">Chemistry 101</option>
+                <option value="BUS101">Business 101</option>
+            </select>
+        </div>
+        
+        <button class="btn-submit" id="submitBtn">
+            <span class="btn-text">Submit Attendance</span>
+            <span class="btn-loader" style="display: none;">⏳</span>
+        </button>
+        
+        <div class="message" id="message"></div>
+    </div>
+    
+    <div class="card-footer">
+        <p>Attendance recorded in real-time • One entry per session</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/student.js"></script>
+</body>
+</html>
