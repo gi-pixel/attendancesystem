@@ -1,3 +1,5 @@
+// Student page logic - handles attendance marking
+
 const studentName = document.getElementById('studentName');
 const studentIndex = document.getElementById('studentIndex');
 const submitBtn = document.getElementById('submitBtn');
@@ -23,6 +25,8 @@ if (courseFromUrl && courseDisplay) {
     courseDisplay.value = courseNames[courseFromUrl] || courseFromUrl;
 }
 
+// ========== VALIDATION FUNCTIONS ==========
+
 function showMessage(element, text, type) {
     if (!element) return;
     element.textContent = text;
@@ -30,58 +34,6 @@ function showMessage(element, text, type) {
     setTimeout(() => {
         element.className = 'message';
     }, 5000);
-}
-
-// Check session status on load
-async function checkSessionStatus() {
-    if (!sessionId) {
-        sessionInfo.innerHTML = '<span> Invalid session link</span>';
-        submitBtn.disabled = true;
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/session-status?session=${sessionId}`);
-        const data = await response.json();
-        
-        if (!data.active) {
-            sessionInfo.innerHTML = '<span> Session Closed - Attendance no longer accepted</span>';
-            submitBtn.disabled = true;
-            if (messageDiv) showMessage(messageDiv, 'This attendance session has closed.', 'error');
-        } else if (data.expiresIn) {
-            const minutesLeft = Math.floor(data.expiresIn / 60000);
-            sessionInfo.innerHTML = `<span> Session Active • Expires in ${minutesLeft} minutes</span>`;
-        }
-    } catch (error) {
-        console.error('Session check failed:', error);
-        sessionInfo.innerHTML = '<span> Unable to check session status</span>';
-    }
-}
-
-function validateIndexNumber(index) {
-    // Remove any spaces
-    index = index.trim();
-    
-    // Check if empty
-    if (!index) {
-        return { valid: false, message: 'Please enter your index number' };
-    }
-    
-    // Check if contains only digits (allow letters? adjust if your index has letters)
-    if (!/^\d+$/.test(index)) {
-        return { valid: false, message: 'Index number must contain only digits' };
-    }
-    
-    // Check length (adjust min/max based on your institution)
-    if (index.length < 10) {
-        return { valid: false, message: 'Index number is too short (minimum 10 digits)' };
-    }
-    
-    if (index.length > 10) {
-        return { valid: false, message: 'Index number is too long (maximum 10 digits)' };
-    }
-    
-    return { valid: true, message: '' };
 }
 
 // Validate name
@@ -96,14 +48,62 @@ function validateName(name) {
         return { valid: false, message: 'Name must be at least 3 characters' };
     }
     
-    if (name.length > 60) {
-        return { valid: false, message: 'Name is too long (maximum 60 characters)' };
+    if (name.length > 100) {
+        return { valid: false, message: 'Name is too long (maximum 100 characters)' };
     }
     
     return { valid: true, message: '' };
 }
 
-// Real-time validation feedback
+// Validate index number (exactly 8-10 digits)
+function validateIndexNumber(index) {
+    index = index.trim();
+    
+    if (!index) {
+        return { valid: false, message: 'Please enter your index number' };
+    }
+    
+    if (!/^\d+$/.test(index)) {
+        return { valid: false, message: 'Index number must contain only digits' };
+    }
+    
+    if (index.length < 8) {
+        return { valid: false, message: 'Index number is too short (minimum 8 digits)' };
+    }
+    
+    if (index.length > 10) {
+        return { valid: false, message: 'Index number is too long (maximum 10 digits)' };
+    }
+    
+    return { valid: true, message: '' };
+}
+
+// Show field error under input
+function showFieldError(field, message) {
+    // Remove existing error message
+    const parent = field.parentElement;
+    const existingError = parent.querySelector('.field-error');
+    if (existingError) existingError.remove();
+    
+    if (message) {
+        field.style.borderColor = '#ef4444';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        errorDiv.style.cssText = 'color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem;';
+        parent.appendChild(errorDiv);
+    } else {
+        field.style.borderColor = '';
+    }
+}
+
+// Clear all field errors
+function clearFieldErrors() {
+    if (studentName) showFieldError(studentName, '');
+    if (studentIndex) showFieldError(studentIndex, '');
+}
+
+// Real-time validation as user types
 function setupRealTimeValidation() {
     if (studentName) {
         studentName.addEventListener('input', function() {
@@ -120,25 +120,35 @@ function setupRealTimeValidation() {
     }
 }
 
-function showFieldError(field, message) {
-    // Remove existing error message
-    const existingError = field.parentElement.querySelector('.field-error');
-    if (existingError) existingError.remove();
+// ========== SESSION STATUS ==========
+
+async function checkSessionStatus() {
+    if (!sessionId) {
+        sessionInfo.innerHTML = '<span>❌ Invalid session link</span>';
+        submitBtn.disabled = true;
+        return;
+    }
     
-    if (message) {
-        field.style.borderColor = '#ef4444';
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'field-error';
-        errorDiv.textContent = message;
-        errorDiv.style.cssText = 'color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem;';
-        field.parentElement.appendChild(errorDiv);
-    } else {
-        field.style.borderColor = '';
+    try {
+        const response = await fetch(`/api/session-status?session=${sessionId}`);
+        const data = await response.json();
+        
+        if (!data.active) {
+            sessionInfo.innerHTML = '<span>🔴 Session Closed - Attendance no longer accepted</span>';
+            submitBtn.disabled = true;
+            if (messageDiv) showMessage(messageDiv, 'This attendance session has closed.', 'error');
+        } else if (data.expiresIn) {
+            const minutesLeft = Math.floor(data.expiresIn / 60000);
+            sessionInfo.innerHTML = `<span>🟢 Session Active • Expires in ${minutesLeft} minutes</span>`;
+        }
+    } catch (error) {
+        console.error('Session check failed:', error);
+        sessionInfo.innerHTML = '<span>⚠️ Unable to check session status</span>';
     }
 }
 
+// ========== SUBMIT ATTENDANCE ==========
 
-// Submit attendance
 async function submitAttendance() {
     const name = studentName.value.trim();
     const index = studentIndex.value.trim();
@@ -164,7 +174,7 @@ async function submitAttendance() {
         return;
     }
     
-    // Rest of your submit code...
+    // Disable button during submission
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
     showMessage(messageDiv, 'Recording attendance...', 'info');
@@ -187,12 +197,10 @@ async function submitAttendance() {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showMessage(messageDiv, `Attendance recorded for ${name}`, 'success');
+            showMessage(messageDiv, `✅ Attendance recorded for ${name}`, 'success');
             studentName.value = '';
             studentIndex.value = '';
-            // Clear any field errors
-            showFieldError(studentName, '');
-            showFieldError(studentIndex, '');
+            clearFieldErrors();
         } else {
             showMessage(messageDiv, data.message || 'Failed to record attendance', 'error');
         }
@@ -205,7 +213,8 @@ async function submitAttendance() {
     }
 }
 
-// Event listeners
+// ========== EVENT LISTENERS ==========
+
 if (submitBtn) {
     submitBtn.addEventListener('click', submitAttendance);
 }
@@ -223,6 +232,6 @@ if (studentName) {
     });
 }
 
-// Check session status on load
-checkSessionStatus();
+// Initialize
 setupRealTimeValidation();
+checkSessionStatus();

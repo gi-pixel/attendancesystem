@@ -62,6 +62,10 @@
     margin-top: 0.25rem;
 }
 
+input.error {
+    border-color: #ef4444 !important;
+}
+
 .input-group input:focus {
     border-color: var(--primary-500);
 }
