@@ -326,6 +326,69 @@ uploadBtn?.addEventListener('click', async () => {
     }
 });
 
+// Load Course History with loading state
+document.getElementById('loadHistoryBtn')?.addEventListener('click', async () => {
+    const course = document.getElementById('historyCourseSelect').value;
+    const loadBtn = document.getElementById('loadHistoryBtn');
+    const historyStats = document.getElementById('historyStats');
+    const historyBody = document.getElementById('historyTableBody');
+    
+    // Show loading state
+    const originalText = loadBtn.textContent;
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    historyBody.innerHTML = '<tr><td colspan="4" class="empty-state">Loading history...<div class="loading-spinner" style="margin-top: 10px;"></div></td></tr>';
+    
+    try {
+        const response = await fetch(`/api/course-history?course=${course}`);
+        const data = await response.json();
+        
+        if (!data.success && data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Update stats cards
+        historyStats.style.display = 'grid';
+        historyStats.innerHTML = `
+            <div class="stat-card"><div class="stat-number">${data.total || 0}</div><div class="stat-label">Total Attendance</div></div>
+            <div class="stat-card"><div class="stat-number">${data.unique || 0}</div><div class="stat-label">Unique Students</div></div>
+            <div class="stat-card"><div class="stat-number">${data.sessions || 0}</div><div class="stat-label">Sessions</div></div>
+        `;
+        
+        if (!data.records || data.records.length === 0) {
+            historyBody.innerHTML = '<tr><td colspan="4" class="empty-state">No attendance records found for this course. Students need to mark attendance first.</td></tr>';
+        } else {
+            historyBody.innerHTML = data.records.map(record => `
+                <tr>
+                    <td>${new Date(record.timestamp).toLocaleDateString()}  ${new Date(record.timestamp).toLocaleTimeString()}</td>
+                    <td>${escapeHtml(record.name)}</td>
+                    <td>${record.index}</td>
+                    <td>${record.sessionId || '-'}</td>
+                </tr>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading history:', error);
+        historyBody.innerHTML = `<tr><td colspan="4" class="empty-state">Error: ${error.message}</td></tr>`;
+        historyStats.style.display = 'none';
+    } finally {
+        // Remove loading state
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = originalText;
+    }
+});
+
+// Helper function to escape HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
 // Helper functions for file reading
 function readFileAsText(file) {
     return new Promise((resolve, reject) => {

@@ -12,11 +12,10 @@ module.exports = async (req, res) => {
     try {
         const token = await getAccessToken();
         
-        // Append to sessions sheet
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'sessions', [
             [sessionId, course, expiresAt, new Date().toISOString()]
         ]);
-                
+        
         res.status(200).json({
             success: true,
             sessionId,

@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 // Week calculation helper
 function getWeekNumber() {
-    // Change this to your academic calendar start date
     const startDate = new Date('2026-05-10');
     const currentDate = new Date();
     const diffTime = currentDate - startDate;
@@ -21,7 +20,6 @@ module.exports = async (req, res) => {
     const { sessionId, course, name, index, timestamp } = req.body;
     const weekNumber = getWeekNumber();
     
-    // Validation
     if (!name || !index || !course || !sessionId) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -41,15 +39,11 @@ module.exports = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Session expired' });
         }
         
-        // ========== VERIFY STUDENT (MOVED INSIDE TRY BLOCK) ==========
+        // Verify student
         const verification = await verifyStudent(token, index);
         if (!verification.valid) {
-            return res.status(400).json({ 
-                success: false, 
-                message: verification.message 
-            });
+            return res.status(400).json({ success: false, message: verification.message });
         }
-        // ========== END VERIFICATION ==========
         
         // Check if already marked for this week
         const attendance = await getSheetData(token, process.env.SPREADSHEET_ID, 'attendance');
@@ -61,11 +55,10 @@ module.exports = async (req, res) => {
             return res.status(400).json({ success: false, message: 'You already marked attendance for this week' });
         }
         
-        // Record attendance with week number
+        // Record attendance
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'attendance', [
             [timestamp, course, name, index, sessionId, weekNumber.toString(), '2025-2026', '1']
         ]);
-        
         
         res.status(200).json({ success: true, message: 'Attendance recorded' });
     } catch (error) {
@@ -74,11 +67,9 @@ module.exports = async (req, res) => {
     }
 };
 
-// ========== VERIFY STUDENT FUNCTION (DEFINED BEFORE IT'S CALLED) ==========
 async function verifyStudent(accessToken, index) {
     try {
         const classList = await getSheetData(accessToken, process.env.SPREADSHEET_ID, 'class_list');
-        
         const student = classList.find(row => 
             row[0] && row[0].toString().trim() === index.toString().trim()
         );
@@ -89,15 +80,12 @@ async function verifyStudent(accessToken, index) {
             return { valid: false, message: 'You are not a registered student. Please contact your lecturer.' };
         }
     } catch (error) {
-        console.error('Verification error:', error);
         return { valid: false, message: 'Verification failed. Please try again.' };
     }
 }
 
-
 async function getAccessToken() {
     const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
-    
     const payload = {
         iss: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         scope: 'https://www.googleapis.com/auth/spreadsheets',
@@ -105,9 +93,7 @@ async function getAccessToken() {
         exp: Math.floor(Date.now() / 1000) + 3600,
         iat: Math.floor(Date.now() / 1000),
     };
-    
     const assertion = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
-    
     const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -116,25 +102,21 @@ async function getAccessToken() {
             assertion: assertion
         })
     });
-    
     const data = await response.json();
     return data.access_token;
 }
 
 async function getSheetData(accessToken, spreadsheetId, sheetName) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}`;
-    
     const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
     });
-    
     const data = await response.json();
     return data.values || [];
 }
 
 async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}:append?valueInputOption=RAW`;
-    
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -143,11 +125,9 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
         },
         body: JSON.stringify({ values })
     });
-    
     if (!response.ok) {
         const error = await response.text();
         throw new Error(`Sheets API error: ${error}`);
     }
-    
     return response.json();
 }
