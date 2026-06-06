@@ -41,6 +41,16 @@ module.exports = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Session expired' });
         }
         
+        // ========== VERIFY STUDENT (MOVED INSIDE TRY BLOCK) ==========
+        const verification = await verifyStudent(token, index);
+        if (!verification.valid) {
+            return res.status(400).json({ 
+                success: false, 
+                message: verification.message 
+            });
+        }
+        // ========== END VERIFICATION ==========
+        
         // Check if already marked for this week
         const attendance = await getSheetData(token, process.env.SPREADSHEET_ID, 'attendance');
         const alreadyMarked = attendance.some(row => 
@@ -65,6 +75,26 @@ module.exports = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// ========== VERIFY STUDENT FUNCTION (DEFINED BEFORE IT'S CALLED) ==========
+async function verifyStudent(accessToken, index) {
+    try {
+        const classList = await getSheetData(accessToken, process.env.SPREADSHEET_ID, 'class_list');
+        
+        const student = classList.find(row => 
+            row[0] && row[0].toString().trim() === index.toString().trim()
+        );
+        
+        if (student) {
+            return { valid: true, message: 'Student verified', name: student[1] || '' };
+        } else {
+            return { valid: false, message: 'You are not a registered student. Please contact your lecturer.' };
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        return { valid: false, message: 'Verification failed. Please try again.' };
+    }
+}
 
 async function updateDashboardCheckbox(accessToken, spreadsheetId, course, index, weekNumber) {
     const sheetName = `${course}_Dashboard`;
@@ -197,26 +227,4 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
     }
     
     return response.json();
-}
-
-const verification = await verifyStudent(token, index);
-if (!verification.valid) {
-    return res.status(400).json({ 
-        success: false, 
-        message: verification.message 
-    });
-}
-
-async function verifyStudent(accessToken, index) {
-    const classList = await getSheetData(accessToken, process.env.SPREADSHEET_ID, 'class_list');
-    
-    const student = classList.find(row => 
-        row[0] && row[0].toString().trim() === index.toString().trim()
-    );
-    
-    if (student) {
-        return { valid: true, message: 'Student verified', name: student[1] || '' };
-    } else {
-        return { valid: false, message: 'You are not a registered student. Please contact your lecturer.' };
-    }
 }
