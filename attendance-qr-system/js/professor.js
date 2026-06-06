@@ -215,3 +215,38 @@
             loadTodayAttendance();
         }
     }, 30000);
+
+    // Load Course Dashboard
+document.getElementById('loadDashboardBtn')?.addEventListener('click', async () => {
+    const course = document.getElementById('dashboardCourseSelect').value;
+    
+    try {
+        const response = await fetch(`/api/course-dashboard?course=${course}`);
+        const data = await response.json();
+        
+        // Render table
+        if (data.headers && data.rows) {
+            renderDashboardTable(data.headers, data.rows);
+        } else {
+            document.getElementById('dashboardBody').innerHTML = '<tr><td colspan="20">No data available. Students need to mark attendance first.</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    }
+});
+
+function renderDashboardTable(headers, rows) {
+    // Header row
+    const thead = document.getElementById('dashboardHeader');
+    thead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+    
+    // Body rows
+    const tbody = document.getElementById('dashboardBody');
+    tbody.innerHTML = rows.map(row => {
+        return '<tr>' + row.map(cell => {
+            if (cell === 'TRUE' || cell === true) return '<td style="text-align: center;">✅</td>';
+            if (cell === 'FALSE' || cell === false) return '<td style="text-align: center;">☐</td>';
+            return `<td>${cell || '-'}</td>`;
+        }).join('') + '</tr>';
+    }).join('');
+}

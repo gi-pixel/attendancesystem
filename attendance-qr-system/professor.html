@@ -27,6 +27,7 @@
         <button class="tab-btn" data-tab="sessions">Active</button>
         <button class="tab-btn" data-tab="attendance"> Today</button>
         <button class="tab-btn" data-tab="history"> History</button>
+        <button class="tab-btn" data-tab="dashboard">Dashboard</button>
     </div>
 
     <!-- Generate QR Tab -->
@@ -127,36 +128,67 @@
         </div>
     </div>
 
-    <!-- History Tab -->
-    <div class="tab-pane" id="tab-history">
-        <div class="card">
-            <div class="card-header">
-                <h2>Course History</h2>
-                <p>View attendance by course</p>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label>Select Course</label>
-                    <select id="historyCourseSelect">
-                        <option value="CS101">Computer Science 101</option>
-                        <option value="MATH201">Mathematics 201</option>
-                        <option value="ENG101">English 101</option>
-                        <option value="PHYS101">Physics 101</option>
-                        <option value="CHEM101">Chemistry 101</option>
-                        <option value="BUS101">Business 101</option>
-                    </select>
+            <!-- History Tab -->
+            <div class="tab-pane" id="tab-history">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Course History</h2>
+                        <p>View attendance by course</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Select Course</label>
+                            <select id="historyCourseSelect">
+                                <option value="CS101">Computer Science 101</option>
+                                <option value="MATH201">Mathematics 201</option>
+                                <option value="ENG101">English 101</option>
+                                <option value="PHYS101">Physics 101</option>
+                                <option value="CHEM101">Chemistry 101</option>
+                                <option value="BUS101">Business 101</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" id="loadHistoryBtn">Load History</button>
+                        <div id="historyStats" class="stats-grid" style="margin-top: 1rem; display: none;"></div>
+                        <div class="table-wrapper" style="margin-top: 1rem;">
+                            <table class="attendance-table" id="historyTable">
+                                <thead><tr><th>Date</th><th>Name</th><th>Index</th><th>Session</th></tr></thead>
+                                <tbody id="historyTableBody"><tr><td colspan="4" class="empty-state">Select a course to view history</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn-primary" id="loadHistoryBtn">Load History</button>
-                <div id="historyStats" class="stats-grid" style="margin-top: 1rem; display: none;"></div>
-                <div class="table-wrapper" style="margin-top: 1rem;">
-                    <table class="attendance-table" id="historyTable">
-                        <thead><tr><th>Date</th><th>Name</th><th>Index</th><th>Session</th></tr></thead>
-                        <tbody id="historyTableBody"><tr><td colspan="4" class="empty-state">Select a course to view history</td></tr></tbody>
-                    </table>
+            </div>
+
+
+            <div class="tab-pane" id="tab-dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Course Dashboard</h2>
+                    <p>View weekly attendance checkboxes</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Select Course</label>
+                        <select id="dashboardCourseSelect">
+                            <option value="CS101">Computer Science 101</option>
+                            <option value="MATH201">Mathematics 201</option>
+                            <option value="ENG101">English 101</option>
+                            <option value="PHYS101">Physics 101</option>
+                            <option value="CHEM101">Chemistry 101</option>
+                            <option value="BUS101">Business 101</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" id="loadDashboardBtn">Load Dashboard</button>
+                    <div class="table-wrapper" style="margin-top: 1rem; overflow-x: auto;">
+                        <table class="attendance-table" id="dashboardTable">
+                            <thead id="dashboardHeader"></thead>
+                            <tbody id="dashboardBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
