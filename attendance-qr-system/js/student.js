@@ -192,11 +192,11 @@ async function submitAttendance() {
     }
     
     // ========== VERIFY STUDENT IN CLASS LIST ==========
-    const verification = await verifyStudent(index);
-    if (!verification.valid) {
-        showMessage(messageDiv, verification.message, 'error');
-        return;
-    }
+    // const verification = await verifyStudent(index);
+    // if (!verification.valid) {
+    //     showMessage(messageDiv, verification.message, 'error');
+    //     return;
+    // }
     // ========== END VERIFICATION ==========
     
     // Disable button during submission

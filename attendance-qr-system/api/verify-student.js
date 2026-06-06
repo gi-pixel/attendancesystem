@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
         const token = await getAccessToken();
         const classList = await getSheetData(token, process.env.SPREADSHEET_ID, 'class_list');
         
-        // Check if index number exists (case insensitive, trimmed)
+        // Check if index number exists
         const student = classList.find(row => 
             row[0] && row[0].toString().trim() === index.toString().trim()
         );
@@ -36,7 +36,7 @@ module.exports = async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Verification error:', error);
         res.status(500).json({ 
             valid: false, 
             message: 'Verification failed. Please try again.' 
