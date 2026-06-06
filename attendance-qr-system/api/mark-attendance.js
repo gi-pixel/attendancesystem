@@ -66,8 +66,6 @@ module.exports = async (req, res) => {
             [timestamp, course, name, index, sessionId, weekNumber.toString(), '2025-2026', '1']
         ]);
         
-        // Update dashboard checkbox
-        await updateDashboardCheckbox(token, process.env.SPREADSHEET_ID, course, index, weekNumber);
         
         res.status(200).json({ success: true, message: 'Attendance recorded' });
     } catch (error) {
@@ -96,81 +94,6 @@ async function verifyStudent(accessToken, index) {
     }
 }
 
-async function updateDashboardCheckbox(accessToken, spreadsheetId, course, index, weekNumber) {
-    const sheetName = `${course}_Dashboard`;
-    const range = `${sheetName}!A:Z`;
-    
-    // Get dashboard data
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`;
-    const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-    
-    const data = await response.json();
-    const rows = data.values || [];
-    
-    // Find student row
-    let studentRowIndex = -1;
-    for (let i = 1; i < rows.length; i++) {
-        if (rows[i] && rows[i][1] === index) {
-            studentRowIndex = i + 1;
-            break;
-        }
-    }
-    
-    if (studentRowIndex !== -1) {
-        // Update checkbox column for this week (week number + 2 for column offset)
-        const colLetter = getColumnLetter(weekNumber + 2);
-        const updateRange = `${sheetName}!${colLetter}${studentRowIndex}`;
-        const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${updateRange}?valueInputOption=RAW`;
-        
-        await fetch(updateUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ values: [['TRUE']] })
-        });
-        
-        // Update total count
-        await updateTotalCount(accessToken, spreadsheetId, sheetName, studentRowIndex, weekNumber);
-    }
-}
-
-async function updateTotalCount(accessToken, spreadsheetId, sheetName, rowIndex, weekNumber) {
-    // Get current total
-    const totalCol = getColumnLetter(19); // Column S (Total)
-    const totalRange = `${sheetName}!${totalCol}${rowIndex}`;
-    const getUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${totalRange}`;
-    
-    const response = await fetch(getUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-    const data = await response.json();
-    let currentTotal = parseInt(data.values?.[0]?.[0]) || 0;
-    currentTotal++;
-    
-    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${totalRange}?valueInputOption=RAW`;
-    await fetch(updateUrl, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ values: [[currentTotal.toString()]] })
-    });
-}
-
-function getColumnLetter(num) {
-    let letter = '';
-    while (num > 0) {
-        num--;
-        letter = String.fromCharCode(65 + (num % 26)) + letter;
-        num = Math.floor(num / 26);
-    }
-    return letter;
-}
 
 async function getAccessToken() {
     const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');

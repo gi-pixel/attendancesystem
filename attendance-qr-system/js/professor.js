@@ -219,66 +219,7 @@ setInterval(() => {
     }
 }, 30000);
 
-// Load Course Dashboard
-// Load Course Dashboard with loading indicator
-document.getElementById('loadDashboardBtn')?.addEventListener('click', async () => {
-    const course = document.getElementById('dashboardCourseSelect').value;
-    const loadBtn = document.getElementById('loadDashboardBtn');
-    const dashboardBody = document.getElementById('dashboardBody');
-    
-    // Show loading
-    const originalText = loadBtn.textContent;
-    loadBtn.disabled = true;
-    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
-    dashboardBody.innerHTML = '<tr><td colspan="20" class="empty-state">Loading dashboard...</td></tr>';
-    
-    try {
-        const response = await fetch(`/api/course-dashboard?course=${course}`);
-        const data = await response.json();
-        
-        if (data.headers && data.rows && data.rows.length > 0) {
-            renderDashboardTable(data.headers, data.rows);
-        } else {
-            dashboardBody.innerHTML = '<tr><td colspan="20" class="empty-state">No data available. Students need to mark attendance first.</td></tr>';
-        }
-    } catch (error) {
-        console.error('Error loading dashboard:', error);
-        dashboardBody.innerHTML = '<tr><td colspan="20" class="empty-state">Error loading dashboard. Please try again.</td></tr>';
-    } finally {
-        loadBtn.disabled = false;
-        loadBtn.innerHTML = originalText;
-    }
-});
 
-function renderDashboardTable(headers, rows) {
-    // Header row
-    const thead = document.getElementById('dashboardHeader');
-    thead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-    
-    // Body rows
-    const tbody = document.getElementById('dashboardBody');
-    tbody.innerHTML = rows.map(row => {
-        return '<tr>' + row.map(cell => {
-            if (cell === 'TRUE' || cell === true) return '<td style="text-align: center;">✅</td>';
-            if (cell === 'FALSE' || cell === false) return '<td style="text-align: center;">☐</td>';
-            return `<td>${cell || '-'}</td>`;
-        }).join('') + '</tr>';
-    }).join('');
-}
-
-// Download CSV Template
-downloadTemplateBtn?.addEventListener('click', () => {
-    const template = `indexNumber,name\n20240001,Emma Thompson\n20240002,John Doe`;
-    const blob = new Blob([template], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'class_list_template.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-});
-
-// Upload CSV (with Excel support)
 // Upload CSV/Excel with loading indicator
 uploadBtn?.addEventListener('click', async () => {
     const file = classListFile.files[0];

@@ -16,9 +16,7 @@ module.exports = async (req, res) => {
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'sessions', [
             [sessionId, course, expiresAt, new Date().toISOString()]
         ]);
-        
-        await ensureDashboardExists(token, process.env.SPREADSHEET_ID, course);
-        
+                
         res.status(200).json({
             success: true,
             sessionId,
@@ -74,52 +72,4 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
     }
     
     return response.json();
-}
-
-async function ensureDashboardExists(accessToken, spreadsheetId, course) {
-    const sheetName = `${course}_Dashboard`;
-    
-    const sheets = await getSheetsList(accessToken, spreadsheetId);
-    if (sheets.includes(sheetName)) return;
-    
-    await addSheet(accessToken, spreadsheetId, sheetName);
-    
-    const headers = [['Name', 'Index Number', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Total']];
-    
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:S1?valueInputOption=RAW`;
-    await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ values: headers })
-    });
-}
-
-async function getSheetsList(accessToken, spreadsheetId) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
-    const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-    const data = await response.json();
-    return data.sheets ? data.sheets.map(s => s.properties.title) : [];
-}
-
-async function addSheet(accessToken, spreadsheetId, sheetName) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`;
-    await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            requests: [{
-                addSheet: {
-                    properties: { title: sheetName }
-                }
-            }]
-        })
-    });
 }
