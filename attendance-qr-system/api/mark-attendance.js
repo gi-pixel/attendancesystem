@@ -198,3 +198,25 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
     
     return response.json();
 }
+
+const verification = await verifyStudent(token, index);
+if (!verification.valid) {
+    return res.status(400).json({ 
+        success: false, 
+        message: verification.message 
+    });
+}
+
+async function verifyStudent(accessToken, index) {
+    const classList = await getSheetData(accessToken, process.env.SPREADSHEET_ID, 'class_list');
+    
+    const student = classList.find(row => 
+        row[0] && row[0].toString().trim() === index.toString().trim()
+    );
+    
+    if (student) {
+        return { valid: true, message: 'Student verified', name: student[1] || '' };
+    } else {
+        return { valid: false, message: 'You are not a registered student. Please contact your lecturer.' };
+    }
+}

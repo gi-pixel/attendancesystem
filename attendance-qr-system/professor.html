@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Professor Dashboard | GroupForge Attendance</title>
+    <title>Professor Dashboard | ClassTrack Attendance</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <div class="header">
     <div class="header-content">
         <div class="logo">
-            <h1>GroupForge</h1>
+            <h1>ClassTrack</h1>
             <p>Professor Dashboard</p>
         </div>
     </div>
@@ -25,9 +25,10 @@
     <div class="tabs">
         <button class="tab-btn active" data-tab="generate">Generate QR</button>
         <button class="tab-btn" data-tab="sessions">Active</button>
-        <button class="tab-btn" data-tab="attendance"> Today</button>
-        <button class="tab-btn" data-tab="history"> History</button>
+        <button class="tab-btn" data-tab="attendance">Today</button>
+        <button class="tab-btn" data-tab="history">History</button>
         <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="students">Students</button>
     </div>
 
     <!-- Generate QR Tab -->
@@ -188,6 +189,37 @@
                 </div>
             </div>
         </div>
+
+        <!-- Students Tab -->
+<div class="tab-pane" id="tab-students">
+    <div class="card">
+        <div class="card-header">
+            <h2>Class List Management</h2>
+            <p>Upload student index numbers and names</p>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>CSV Format</label>
+                <div class="csv-format">
+                    <code>indexNumber,name</code><br>
+                    <code>20240001,Emma Thompson</code><br>
+                    <code>20240002,John Doe</code>
+                </div>
+                <small>Only index number is required for verification</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Select CSV File</label>
+                <input type="file" id="classListFile" accept=".csv,.xlsx,.xls">
+            </div>
+            
+            <button class="btn-primary" id="uploadClassListBtn">Upload Class List</button>
+            <button class="btn-secondary" id="downloadTemplateBtn">Download Template</button>
+            
+            <div id="uploadResult" style="display: none; margin-top: 1rem;"></div>
+        </div>
+    </div>
+</div>
 
 </div>
 

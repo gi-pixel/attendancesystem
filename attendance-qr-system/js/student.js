@@ -80,7 +80,6 @@ function validateIndexNumber(index) {
 
 // Show field error under input
 function showFieldError(field, message) {
-    // Remove existing error message
     const parent = field.parentElement;
     const existingError = parent.querySelector('.field-error');
     if (existingError) existingError.remove();
@@ -147,6 +146,24 @@ async function checkSessionStatus() {
     }
 }
 
+// ========== VERIFY STUDENT ==========
+
+async function verifyStudent(index) {
+    try {
+        const response = await fetch('/api/verify-student', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: index })
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Verification error:', error);
+        return { valid: false, message: 'Verification failed. Please try again.' };
+    }
+}
+
 // ========== SUBMIT ATTENDANCE ==========
 
 async function submitAttendance() {
@@ -173,6 +190,14 @@ async function submitAttendance() {
         showMessage(messageDiv, 'Invalid session. Please scan QR code again.', 'error');
         return;
     }
+    
+    // ========== VERIFY STUDENT IN CLASS LIST ==========
+    const verification = await verifyStudent(index);
+    if (!verification.valid) {
+        showMessage(messageDiv, verification.message, 'error');
+        return;
+    }
+    // ========== END VERIFICATION ==========
     
     // Disable button during submission
     submitBtn.disabled = true;
