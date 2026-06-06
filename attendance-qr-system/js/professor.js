@@ -220,21 +220,33 @@ setInterval(() => {
 }, 30000);
 
 // Load Course Dashboard
+// Load Course Dashboard with loading indicator
 document.getElementById('loadDashboardBtn')?.addEventListener('click', async () => {
     const course = document.getElementById('dashboardCourseSelect').value;
+    const loadBtn = document.getElementById('loadDashboardBtn');
+    const dashboardBody = document.getElementById('dashboardBody');
+    
+    // Show loading
+    const originalText = loadBtn.textContent;
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    dashboardBody.innerHTML = '<tr><td colspan="20" class="empty-state">Loading dashboard...</td></tr>';
     
     try {
         const response = await fetch(`/api/course-dashboard?course=${course}`);
         const data = await response.json();
         
-        // Render table
-        if (data.headers && data.rows) {
+        if (data.headers && data.rows && data.rows.length > 0) {
             renderDashboardTable(data.headers, data.rows);
         } else {
-            document.getElementById('dashboardBody').innerHTML = '<tr><td colspan="20">No data available. Students need to mark attendance first.</td></tr>';
+            dashboardBody.innerHTML = '<tr><td colspan="20" class="empty-state">No data available. Students need to mark attendance first.</td></tr>';
         }
     } catch (error) {
         console.error('Error loading dashboard:', error);
+        dashboardBody.innerHTML = '<tr><td colspan="20" class="empty-state">Error loading dashboard. Please try again.</td></tr>';
+    } finally {
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = originalText;
     }
 });
 
@@ -276,14 +288,24 @@ uploadBtn?.addEventListener('click', async () => {
     
     const extension = file.name.split('.').pop().toLowerCase();
     
-    if (extension === 'csv') {
-        // Handle CSV
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target.result;
+    if (extension !== 'csv' && extension !== 'xlsx' && extension !== 'xls') {
+        showUploadMessage('Unsupported file type. Please upload CSV or Excel files.', 'error');
+        return;
+    }
+    
+    // Show loading state
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<span class="loading-spinner"></span> Uploading...';
+    uploadBtn.classList.add('btn-loading');
+    showUploadMessage('Processing file...', 'info');
+    
+    try {
+        let students = [];
+        
+        if (extension === 'csv') {
+            // Handle CSV
+            const text = await readFileAsText(file);
             const lines = text.split('\n');
-            
-            const students = [];
             const startIndex = lines[0].toLowerCase().includes('index') ? 1 : 0;
             
             for (let i = startIndex; i < lines.length; i++) {
@@ -295,20 +317,13 @@ uploadBtn?.addEventListener('click', async () => {
                     });
                 }
             }
-            
-            await processUpload(students);
-        };
-        reader.readAsText(file);
-    } else if (extension === 'xlsx' || extension === 'xls') {
-        // Handle Excel using SheetJS
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const data = new Uint8Array(e.target.result);
+        } else {
+            // Handle Excel
+            const data = await readFileAsArrayBuffer(file);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
             
-            const students = [];
             const startRow = (jsonData[0] && jsonData[0][0] && jsonData[0][0].toString().toLowerCase().includes('index')) ? 1 : 0;
             
             for (let i = startRow; i < jsonData.length; i++) {
@@ -320,26 +335,14 @@ uploadBtn?.addEventListener('click', async () => {
                     });
                 }
             }
-            
-            await processUpload(students);
-        };
-        reader.readAsArrayBuffer(file);
-    } else {
-        showUploadMessage('Unsupported file type. Please upload CSV or Excel files.', 'error');
-        return;
-    }
-});
-
-async function processUpload(students) {
-    if (students.length === 0) {
-        showUploadMessage('No valid student data found', 'error');
-        return;
-    }
-    
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = 'Uploading...';
-    
-    try {
+        }
+        
+        if (students.length === 0) {
+            showUploadMessage('No valid student data found in file', 'error');
+            return;
+        }
+        
+        // Send to API
         const response = await fetch('/api/upload-classlist', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -349,24 +352,49 @@ async function processUpload(students) {
         const data = await response.json();
         
         if (data.success) {
-            showUploadMessage(` ${data.message}`, 'success');
+            showUploadMessage(`✅ ${data.message} (Added: ${data.added}, Duplicates: ${data.duplicates})`, 'success');
             classListFile.value = '';
         } else {
-            showUploadMessage(` ${data.message}`, 'error');
+            showUploadMessage(`❌ ${data.message}`, 'error');
         }
     } catch (error) {
-        showUploadMessage('Upload failed. Please try again.', 'error');
+        console.error('Upload error:', error);
+        showUploadMessage('Upload failed. Please check file format and try again.', 'error');
     } finally {
+        // Remove loading state
         uploadBtn.disabled = false;
-        uploadBtn.textContent = 'Upload Class List';
+        uploadBtn.innerHTML = 'Upload Class List';
+        uploadBtn.classList.remove('btn-loading');
     }
+});
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+    });
+}
+
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsArrayBuffer(file);
+    });
 }
 
 function showUploadMessage(message, type) {
     uploadResult.textContent = message;
-    uploadResult.className = type === 'success' ? 'upload-result success' : 'upload-result error';
+    uploadResult.className = `upload-result ${type}`;
     uploadResult.style.display = 'block';
-    setTimeout(() => {
-        uploadResult.style.display = 'none';
-    }, 5000);
+    
+    // Auto-hide after 5 seconds for success/error, keep info visible
+    if (type !== 'info') {
+        setTimeout(() => {
+            uploadResult.style.display = 'none';
+        }, 5000);
+    }
 }
