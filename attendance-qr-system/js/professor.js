@@ -464,7 +464,7 @@ document.getElementById('loadAnalyticsBtn')?.addEventListener('click', async () 
                 <td>${s.present}</td>
                 <td>${s.total}</td>
                 <td>${s.percentage}%</td>
-                <td class="status-${s.status.toLowerCase()}">${s.status === 'Good' ? '✅ Good' : (s.status === 'Warning' ? '⚠️ Warning' : '❌ At Risk')}</td>
+                <td class="status-${s.status.toLowerCase()}">${s.status === 'Good' ? 'Good' : (s.status === 'Warning' ? 'Warning' : 'At Risk')}</td>
             </tr>
         `).join('');
         
