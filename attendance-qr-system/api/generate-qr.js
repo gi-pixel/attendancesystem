@@ -17,7 +17,6 @@ module.exports = async (req, res) => {
             [sessionId, course, expiresAt, new Date().toISOString()]
         ]);
         
-        // Ensure dashboard sheet exists for this course
         await ensureDashboardExists(token, process.env.SPREADSHEET_ID, course);
         
         res.status(200).json({
@@ -80,15 +79,12 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
 async function ensureDashboardExists(accessToken, spreadsheetId, course) {
     const sheetName = `${course}_Dashboard`;
     
-    // Check if sheet exists
     const sheets = await getSheetsList(accessToken, spreadsheetId);
     if (sheets.includes(sheetName)) return;
     
-    // Create dashboard sheet
     await addSheet(accessToken, spreadsheetId, sheetName);
     
-    // Add headers (16 weeks + Name, Index, Total)
-    const headers = [['Name', 'Index Number', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16', 'Total']];
+    const headers = [['Name', 'Index Number', 'Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Total']];
     
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:S1?valueInputOption=RAW`;
     await fetch(url, {

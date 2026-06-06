@@ -1,5 +1,5 @@
 const WeekHelper = {
-    ACADEMIC_START: new Date('2025-05-10'),
+    ACADEMIC_START: new Date('2026-05-10'),
     
     getWeekNumber: function(date) {
         const startDate = new Date(this.ACADEMIC_START);

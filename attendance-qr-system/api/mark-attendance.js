@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 // Week calculation helper
 function getWeekNumber() {
     // Change this to your academic calendar start date
-    const startDate = new Date('2025-09-01');
+    const startDate = new Date('2026-05-10');
     const currentDate = new Date();
     const diffTime = currentDate - startDate;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
         
         // Record attendance with week number
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'attendance', [
-            [timestamp, course, name, index, sessionId, weekNumber.toString(), '2024-2025', '1']
+            [timestamp, course, name, index, sessionId, weekNumber.toString(), '2025-2026', '1']
         ]);
         
         // Update dashboard checkbox
@@ -121,7 +121,6 @@ async function updateTotalCount(accessToken, spreadsheetId, sheetName, rowIndex,
     let currentTotal = parseInt(data.values?.[0]?.[0]) || 0;
     currentTotal++;
     
-    // Update total
     const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${totalRange}?valueInputOption=RAW`;
     await fetch(updateUrl, {
         method: 'PUT',
