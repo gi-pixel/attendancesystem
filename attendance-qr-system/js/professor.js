@@ -378,6 +378,130 @@ document.getElementById('loadHistoryBtn')?.addEventListener('click', async () =>
     }
 });
 
+// Analytics variables
+let weeklyChart = null;
+
+// Load Analytics
+document.getElementById('loadAnalyticsBtn')?.addEventListener('click', async () => {
+    const course = document.getElementById('analyticsCourseSelect').value;
+    const loading = document.getElementById('analyticsLoading');
+    const results = document.getElementById('analyticsResults');
+    const loadBtn = document.getElementById('loadAnalyticsBtn');
+    
+    // Show loading
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    loading.style.display = 'block';
+    results.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/course-analytics?course=${course}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error);
+        }
+        
+        // Render summary cards
+        const summaryHtml = `
+            <div class="summary-card">
+                <div class="value">${data.summary.totalStudents}</div>
+                <div class="label">Total Students</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">${data.summary.totalWeeks}</div>
+                <div class="label">Total Weeks</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">${data.summary.totalAttendance}</div>
+                <div class="label">Total Records</div>
+            </div>
+            <div class="summary-card">
+                <div class="value">${data.summary.averagePercentage}%</div>
+                <div class="label">Avg Attendance</div>
+            </div>
+        `;
+        document.getElementById('analyticsSummary').innerHTML = summaryHtml;
+        
+        // Render weekly trend chart
+        if (weeklyChart) {
+            weeklyChart.destroy();
+        }
+        
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        weeklyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.weeklyTrend.map(w => `Week ${w.week}`),
+                datasets: [{
+                    label: 'Attendance %',
+                    data: data.weeklyTrend.map(w => w.percentage.toFixed(1)),
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw}%` } }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { callback: (v) => `${v}%` } }
+                }
+            }
+        });
+        
+        // Render student table
+        const studentBody = document.getElementById('studentTableBody');
+        studentBody.innerHTML = data.students.map(s => `
+            <tr>
+                <td>${escapeHtml(s.name)}</td>
+                <td>${s.index}</td>
+                <td>${s.present}</td>
+                <td>${s.total}</td>
+                <td>${s.percentage}%</td>
+                <td class="status-${s.status.toLowerCase()}">${s.status === 'Good' ? '✅ Good' : (s.status === 'Warning' ? '⚠️ Warning' : '❌ At Risk')}</td>
+            </tr>
+        `).join('');
+        
+        // Show results
+        results.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Analytics error:', error);
+        alert('Failed to load analytics: ' + error.message);
+    } finally {
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = 'Load Analytics';
+        loading.style.display = 'none';
+    }
+});
+
+// Export Analytics to CSV
+document.getElementById('exportAnalyticsBtn')?.addEventListener('click', () => {
+    const rows = document.querySelectorAll('#studentTableBody tr');
+    let csv = 'Name,Index Number,Present,Total Weeks,Percentage,Status\n';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length) {
+            csv += `"${cells[0].textContent}","${cells[1].textContent}","${cells[2].textContent}","${cells[3].textContent}","${cells[4].textContent}","${cells[5].textContent}"\n`;
+        }
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics_${document.getElementById('analyticsCourseSelect').value}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
 // Helper function to escape HTML
 function escapeHtml(str) {
     if (!str) return '';

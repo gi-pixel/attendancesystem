@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/professor.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -29,6 +30,7 @@
         <button class="tab-btn" data-tab="attendance">Today</button>
         <button class="tab-btn" data-tab="history">History</button>
         <button class="tab-btn" data-tab="students">Students</button>
+        <button class="tab-btn" data-tab="analytics">Analytics</button>
     </div>
 
     <!-- Generate QR Tab -->
@@ -185,6 +187,68 @@
             
             <button class="btn-primary" id="uploadClassListBtn">Upload Class List</button>            
             <div id="uploadResult" style="display: none; margin-top: 1rem;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Tab -->
+<div class="tab-pane" id="tab-analytics">
+    <div class="card">
+        <div class="card-header">
+            <h2>Attendance Analytics</h2>
+            <p>View insights and statistics for your courses</p>
+        </div>
+        <div class="card-body">
+            <!-- Course Selector -->
+            <div class="form-group">
+                <label>Select Course</label>
+                <select id="analyticsCourseSelect">
+                    <option value="CS101">Computer Science 101</option>
+                    <option value="MATH201">Mathematics 201</option>
+                    <option value="ENG101">English 101</option>
+                    <option value="PHYS101">Physics 101</option>
+                    <option value="CHEM101">Chemistry 101</option>
+                    <option value="BUS101">Business 101</option>
+                </select>
+            </div>
+            
+            <button class="btn-primary" id="loadAnalyticsBtn">Load Analytics</button>
+            
+            <!-- Loading Indicator -->
+            <div id="analyticsLoading" style="display: none; text-align: center; padding: 2rem;">
+                <div class="loading-spinner"></div>
+                <p>Loading analytics data...</p>
+            </div>
+            
+            <!-- Analytics Results -->
+            <div id="analyticsResults" style="display: none;">
+                <!-- Summary Cards -->
+                <div class="analytics-summary" id="analyticsSummary"></div>
+                
+                <!-- Weekly Trend Chart -->
+                <div class="analytics-card">
+                    <h3>Weekly Attendance Trend</h3>
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Student List -->
+                <div class="analytics-card">
+                    <h3>Student Attendance Breakdown</h3>
+                    <div class="table-wrapper">
+                        <table class="attendance-table" id="studentTable">
+                            <thead>
+                                <tr><th>Name</th><th>Index</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="studentTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Export Button -->
+                <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">📥 Export to CSV</button>
+            </div>
         </div>
     </div>
 </div>
