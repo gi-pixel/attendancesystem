@@ -279,6 +279,7 @@ downloadTemplateBtn?.addEventListener('click', () => {
 });
 
 // Upload CSV (with Excel support)
+// Upload CSV/Excel with loading indicator
 uploadBtn?.addEventListener('click', async () => {
     const file = classListFile.files[0];
     if (!file) {
@@ -310,7 +311,7 @@ uploadBtn?.addEventListener('click', async () => {
             
             for (let i = startIndex; i < lines.length; i++) {
                 const values = lines[i].split(',');
-                if (values.length >= 1 && values[0].trim()) {
+                if (values.length >= 1 && values[0] && values[0].trim()) {
                     students.push({
                         indexNumber: values[0].trim(),
                         name: values[1] ? values[1].trim() : ''
@@ -318,13 +319,29 @@ uploadBtn?.addEventListener('click', async () => {
                 }
             }
         } else {
-            // Handle Excel
+            // Handle Excel - check if SheetJS is available
+            if (typeof XLSX === 'undefined') {
+                throw new Error('Excel parser not loaded. Please refresh the page.');
+            }
+            
             const data = await readFileAsArrayBuffer(file);
             const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
             
-            const startRow = (jsonData[0] && jsonData[0][0] && jsonData[0][0].toString().toLowerCase().includes('index')) ? 1 : 0;
+            if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                throw new Error('No sheets found in Excel file');
+            }
+            
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+            
+            if (!jsonData || jsonData.length === 0) {
+                throw new Error('No data found in Excel file');
+            }
+            
+            // Check if first row contains headers
+            const firstRow = jsonData[0];
+            const hasHeader = firstRow && firstRow[0] && firstRow[0].toString().toLowerCase().includes('index');
+            const startRow = hasHeader ? 1 : 0;
             
             for (let i = startRow; i < jsonData.length; i++) {
                 const row = jsonData[i];
@@ -338,7 +355,7 @@ uploadBtn?.addEventListener('click', async () => {
         }
         
         if (students.length === 0) {
-            showUploadMessage('No valid student data found in file', 'error');
+            showUploadMessage('No valid student data found in file. Make sure first column contains index numbers.', 'error');
             return;
         }
         
@@ -359,7 +376,7 @@ uploadBtn?.addEventListener('click', async () => {
         }
     } catch (error) {
         console.error('Upload error:', error);
-        showUploadMessage('Upload failed. Please check file format and try again.', 'error');
+        showUploadMessage(`Upload failed: ${error.message}`, 'error');
     } finally {
         // Remove loading state
         uploadBtn.disabled = false;
@@ -368,11 +385,12 @@ uploadBtn?.addEventListener('click', async () => {
     }
 });
 
+// Helper functions for file reading
 function readFileAsText(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(e);
+        reader.onerror = (e) => reject(new Error('Failed to read file'));
         reader.readAsText(file);
     });
 }
@@ -381,7 +399,7 @@ function readFileAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(e);
+        reader.onerror = (e) => reject(new Error('Failed to read Excel file'));
         reader.readAsArrayBuffer(file);
     });
 }
