@@ -3,29 +3,40 @@ const jwt = require('jsonwebtoken');
 module.exports = async (req, res) => {
     const { session } = req.query;
     
+    if (!session) {
+        return res.status(400).json({ active: false, error: 'Session parameter required' });
+    }
+    
     try {
         const token = await getAccessToken();
         const sessions = await getSheetData(token, process.env.SPREADSHEET_ID, 'sessions');
         const sessionRow = sessions.find(row => row[0] === session);
         
         if (!sessionRow) {
-            return res.status(200).json({ active: false });
+            return res.status(200).json({ active: false, message: 'Session not found' });
         }
         
         const expiresAt = new Date(sessionRow[2]);
-        const active = expiresAt > new Date();
+        const now = new Date();
+        const active = expiresAt > now;
+        
+        // Handle missing columns gracefully (for older sessions)
+        const requireLocation = sessionRow[4] === 'YES' ? 'YES' : 'NO';
+        const classLat = sessionRow[5] ? parseFloat(sessionRow[5]) : null;
+        const classLng = sessionRow[6] ? parseFloat(sessionRow[6]) : null;
         
         res.status(200).json({
             active,
-            expiresIn: active ? expiresAt - Date.now() : 0,
-            expiresAt: expiresAt,
-            requireLocation: sessionRow[4] || 'NO',
-            classLat: sessionRow[5] || null,
-            classLng: sessionRow[6] || null,
-
+            expiresIn: active ? expiresAt.getTime() - now.getTime() : 0,
+            expiresAt: expiresAt.toISOString(),
+            requireLocation: requireLocation,
+            classLat: classLat,
+            classLng: classLng,
             course: sessionRow[1]
         });
+        
     } catch (error) {
+        console.error('Session status error:', error);
         res.status(500).json({ active: false, error: error.message });
     }
 };
@@ -52,6 +63,11 @@ async function getAccessToken() {
         })
     });
     
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Token error: ${errorData.error_description || errorData.error}`);
+    }
+    
     const data = await response.json();
     return data.access_token;
 }
@@ -62,6 +78,10 @@ async function getSheetData(accessToken, spreadsheetId, sheetName) {
     const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
     });
+    
+    if (!response.ok) {
+        throw new Error(`Sheets API error: ${response.statusText}`);
+    }
     
     const data = await response.json();
     return data.values || [];

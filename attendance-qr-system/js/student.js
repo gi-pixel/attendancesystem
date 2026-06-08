@@ -7,6 +7,7 @@ const messageDiv = document.getElementById('message');
 const sessionInfo = document.getElementById('sessionInfo');
 const courseDisplay = document.getElementById('courseDisplay');
 
+// Geolocation variables
 let userLocation = null;
 let locationRequired = false;
 let classroomLocation = null;
@@ -29,6 +30,50 @@ if (courseFromUrl && courseDisplay) {
     courseDisplay.value = courseNames[courseFromUrl] || courseFromUrl;
 }
 
+// ========== GEOLOCATION FUNCTIONS ==========
+
+function getUserLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported by your browser'));
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                resolve(userLocation);
+            },
+            (error) => {
+                let message = 'Location access denied. ';
+                if (error.code === 1) message += 'Please enable location in your browser settings.';
+                else if (error.code === 2) message += 'Location unavailable.';
+                else message += 'Please try again.';
+                reject(new Error(message));
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
+}
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lng2 - lng1) * Math.PI / 180;
+    
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    return R * c;
+}
+
 // ========== VALIDATION FUNCTIONS ==========
 
 function showMessage(element, text, type) {
@@ -40,7 +85,6 @@ function showMessage(element, text, type) {
     }, 5000);
 }
 
-// Validate name
 function validateName(name) {
     name = name.trim();
     
@@ -59,7 +103,6 @@ function validateName(name) {
     return { valid: true, message: '' };
 }
 
-// Validate index number (exactly 8-10 digits)
 function validateIndexNumber(index) {
     index = index.trim();
     
@@ -82,7 +125,46 @@ function validateIndexNumber(index) {
     return { valid: true, message: '' };
 }
 
-// Countdown Timer
+function showFieldError(field, message) {
+    const parent = field.parentElement;
+    const existingError = parent.querySelector('.field-error');
+    if (existingError) existingError.remove();
+    
+    if (message) {
+        field.style.borderColor = '#ef4444';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        errorDiv.style.cssText = 'color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem;';
+        parent.appendChild(errorDiv);
+    } else {
+        field.style.borderColor = '';
+    }
+}
+
+function clearFieldErrors() {
+    if (studentName) showFieldError(studentName, '');
+    if (studentIndex) showFieldError(studentIndex, '');
+}
+
+function setupRealTimeValidation() {
+    if (studentName) {
+        studentName.addEventListener('input', function() {
+            const result = validateName(this.value);
+            showFieldError(this, result.valid ? '' : result.message);
+        });
+    }
+    
+    if (studentIndex) {
+        studentIndex.addEventListener('input', function() {
+            const result = validateIndexNumber(this.value);
+            showFieldError(this, result.valid ? '' : result.message);
+        });
+    }
+}
+
+// ========== COUNTDOWN TIMER ==========
+
 let countdownInterval = null;
 
 function startCountdown(expiresAt) {
@@ -125,47 +207,6 @@ function startCountdown(expiresAt) {
     countdownInterval = setInterval(updateCountdown, 1000);
 }
 
-// Show field error under input
-function showFieldError(field, message) {
-    const parent = field.parentElement;
-    const existingError = parent.querySelector('.field-error');
-    if (existingError) existingError.remove();
-    
-    if (message) {
-        field.style.borderColor = '#ef4444';
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'field-error';
-        errorDiv.textContent = message;
-        errorDiv.style.cssText = 'color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem;';
-        parent.appendChild(errorDiv);
-    } else {
-        field.style.borderColor = '';
-    }
-}
-
-// Clear all field errors
-function clearFieldErrors() {
-    if (studentName) showFieldError(studentName, '');
-    if (studentIndex) showFieldError(studentIndex, '');
-}
-
-// Real-time validation as user types
-function setupRealTimeValidation() {
-    if (studentName) {
-        studentName.addEventListener('input', function() {
-            const result = validateName(this.value);
-            showFieldError(this, result.valid ? '' : result.message);
-        });
-    }
-    
-    if (studentIndex) {
-        studentIndex.addEventListener('input', function() {
-            const result = validateIndexNumber(this.value);
-            showFieldError(this, result.valid ? '' : result.message);
-        });
-    }
-}
-
 // ========== SESSION STATUS ==========
 
 async function checkSessionStatus() {
@@ -173,14 +214,6 @@ async function checkSessionStatus() {
         sessionInfo.innerHTML = '<span>❌ Invalid session link</span>';
         submitBtn.disabled = true;
         return;
-    }
-
-    // Store location requirement
-    locationRequired = data.requireLocation === 'YES';
-    if (locationRequired && data.classLat && data.classLng) {
-        classroomLocation = { lat: parseFloat(data.classLat), lng: parseFloat(data.classLng) };
-        const locationDiv = document.getElementById('locationStatus');
-        if (locationDiv) locationDiv.style.display = 'block';
     }
     
     try {
@@ -195,27 +228,18 @@ async function checkSessionStatus() {
             sessionInfo.innerHTML = '<span>🟢 Session Active</span>';
             startCountdown(data.expiresAt);
         }
+        
+        // Store location requirement (moved inside try block)
+        locationRequired = data.requireLocation === 'YES';
+        if (locationRequired && data.classLat && data.classLng) {
+            classroomLocation = { lat: parseFloat(data.classLat), lng: parseFloat(data.classLng) };
+            const locationDiv = document.getElementById('locationStatus');
+            if (locationDiv) locationDiv.style.display = 'block';
+        }
+        
     } catch (error) {
         console.error('Session check failed:', error);
         sessionInfo.innerHTML = '<span>⚠️ Unable to check session status</span>';
-    }
-}
-
-// ========== VERIFY STUDENT ==========
-
-async function verifyStudent(index) {
-    try {
-        const response = await fetch('/api/verify-student', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ index: index })
-        });
-        
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Verification error:', error);
-        return { valid: false, message: 'Verification failed. Please try again.' };
     }
 }
 
@@ -225,7 +249,6 @@ async function submitAttendance() {
     const name = studentName.value.trim();
     const index = studentIndex.value.trim();
     
-    // Validate name
     const nameValidation = validateName(name);
     if (!nameValidation.valid) {
         showMessage(messageDiv, nameValidation.message, 'error');
@@ -233,18 +256,24 @@ async function submitAttendance() {
         return;
     }
     
-    // Validate index number
     const indexValidation = validateIndexNumber(index);
     if (!indexValidation.valid) {
         showMessage(messageDiv, indexValidation.message, 'error');
         studentIndex.focus();
         return;
     }
-
-    // If location required, verify before submission
+    
+    if (!sessionId) {
+        showMessage(messageDiv, 'Invalid session. Please scan QR code again.', 'error');
+        return;
+    }
+    
+    // Location verification
     if (locationRequired && classroomLocation) {
         const locationStatus = document.getElementById('locationMessage');
-        locationStatus.innerHTML = ' Verifying your location...';
+        if (locationStatus) {
+            locationStatus.innerHTML = '📍 Verifying your location...';
+        }
         
         try {
             const location = await getUserLocation();
@@ -254,27 +283,27 @@ async function submitAttendance() {
             );
             
             if (distance > 30) {
-                locationStatus.innerHTML = ` You are ${Math.round(distance)} meters away. Must be within 30 meters of classroom.`;
+                if (locationStatus) {
+                    locationStatus.innerHTML = `❌ You are ${Math.round(distance)} meters away. Must be within 30 meters of classroom.`;
+                }
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Attendance';
                 return;
             }
             
-            locationStatus.innerHTML = `Location verified (${Math.round(distance)}m from classroom)`;
+            if (locationStatus) {
+                locationStatus.innerHTML = `✅ Location verified (${Math.round(distance)}m from classroom)`;
+            }
         } catch (error) {
-            locationStatus.innerHTML = ` ${error.message}`;
+            if (locationStatus) {
+                locationStatus.innerHTML = `❌ ${error.message}`;
+            }
             submitBtn.disabled = false;
             submitBtn.textContent = 'Submit Attendance';
             return;
         }
     }
     
-    if (!sessionId) {
-        showMessage(messageDiv, 'Invalid session. Please scan QR code again.', 'error');
-        return;
-    }
-    
-    // Disable button during submission
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
     showMessage(messageDiv, 'Recording attendance...', 'info');
@@ -299,7 +328,7 @@ async function submitAttendance() {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showMessage(messageDiv, ` Attendance recorded for ${name}`, 'success');
+            showMessage(messageDiv, `✅ Attendance recorded for ${name}`, 'success');
             studentName.value = '';
             studentIndex.value = '';
             clearFieldErrors();
@@ -315,14 +344,12 @@ async function submitAttendance() {
     }
 }
 
-
 // ========== EVENT LISTENERS ==========
 
 if (submitBtn) {
     submitBtn.addEventListener('click', submitAttendance);
 }
 
-// Enter key support
 if (studentIndex) {
     studentIndex.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') submitAttendance();
@@ -333,54 +360,6 @@ if (studentName) {
     studentName.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') submitAttendance();
     });
-}
-
-// Geolocation variables
-let userLocation = null;
-let locationRequired = false;
-
-// Get user's current location
-function getUserLocation() {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            reject(new Error('Geolocation not supported by your browser'));
-            return;
-        }
-        
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                resolve(userLocation);
-            },
-            (error) => {
-                let message = 'Location access denied. ';
-                if (error.code === 1) message += 'Please enable location in your browser settings.';
-                else if (error.code === 2) message += 'Location unavailable.';
-                else message += 'Please try again.';
-                reject(new Error(message));
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    });
-}
-
-// Calculate distance between two coordinates (Haversine formula)
-function calculateDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371e3; // Earth radius in meters
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lng2 - lng1) * Math.PI / 180;
-    
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    
-    return R * c; // distance in meters
 }
 
 // Initialize

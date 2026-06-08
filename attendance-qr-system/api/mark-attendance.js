@@ -1,5 +1,21 @@
 const jwt = require('jsonwebtoken');
 
+// Calculate distance between two coordinates in meters (Haversine formula)
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lng2 - lng1) * Math.PI / 180;
+    
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+    return R * c;
+}
+
 // Week calculation helper
 function getWeekNumber() {
     const startDate = new Date('2026-05-10');
@@ -17,9 +33,10 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
     
-    const { sessionId, course, name, index, timestamp } = req.body;
+    const { sessionId, course, name, index, timestamp, userLat, userLng } = req.body;
     const weekNumber = getWeekNumber();
     
+    // Validation
     if (!name || !index || !course || !sessionId) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -39,7 +56,32 @@ module.exports = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Session expired' });
         }
         
-        // Verify student
+        // If location required, verify distance
+        if (session[4] === 'YES') {
+            // Check if coordinates exist in session
+            if (!session[5] || !session[6]) {
+                return res.status(400).json({ success: false, message: 'Classroom location not set. Please contact your lecturer.' });
+            }
+            
+            if (!userLat || !userLng) {
+                return res.status(400).json({ success: false, message: 'Location required for attendance. Please enable location access.' });
+            }
+            
+            const classLat = parseFloat(session[5]);
+            const classLng = parseFloat(session[6]);
+            
+            if (isNaN(classLat) || isNaN(classLng)) {
+                return res.status(400).json({ success: false, message: 'Invalid classroom coordinates' });
+            }
+            
+            const distance = calculateDistance(classLat, classLng, userLat, userLng);
+            
+            if (distance > 30) {
+                return res.status(400).json({ success: false, message: `You are ${Math.round(distance)}m away. Must be within 30m of classroom.` });
+            }
+        }
+        
+        // Verify student exists in class list
         const verification = await verifyStudent(token, index);
         if (!verification.valid) {
             return res.status(400).json({ success: false, message: verification.message });
@@ -55,30 +97,13 @@ module.exports = async (req, res) => {
             return res.status(400).json({ success: false, message: 'You already marked attendance for this week' });
         }
         
-        // If location required, verify distance (add this after session validation)
-        if (session[4] === 'YES' && session[5] && session[6]) {
-            const { userLat, userLng } = req.body;
-            
-            if (!userLat || !userLng) {
-                return res.status(400).json({ success: false, message: 'Location required for attendance' });
-            }
-            
-            const distance = calculateDistance(
-                parseFloat(session[5]), parseFloat(session[6]),
-                userLat, userLng
-            );
-            
-            if (distance > 30) {
-                return res.status(400).json({ success: false, message: `You are ${Math.round(distance)}m away. Must be within 30m of classroom.` });
-            }
-        }
-        
         // Record attendance
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'attendance', [
             [timestamp, course, name, index, sessionId, weekNumber.toString(), '2025-2026', '1']
         ]);
         
         res.status(200).json({ success: true, message: 'Attendance recorded' });
+        
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -98,12 +123,14 @@ async function verifyStudent(accessToken, index) {
             return { valid: false, message: 'You are not a registered student. Please contact your lecturer.' };
         }
     } catch (error) {
+        console.error('Verification error:', error);
         return { valid: false, message: 'Verification failed. Please try again.' };
     }
 }
 
 async function getAccessToken() {
     const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    
     const payload = {
         iss: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         scope: 'https://www.googleapis.com/auth/spreadsheets',
@@ -111,7 +138,9 @@ async function getAccessToken() {
         exp: Math.floor(Date.now() / 1000) + 3600,
         iat: Math.floor(Date.now() / 1000),
     };
+    
     const assertion = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+    
     const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -120,21 +149,34 @@ async function getAccessToken() {
             assertion: assertion
         })
     });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Token error: ${errorData.error_description || errorData.error}`);
+    }
+    
     const data = await response.json();
     return data.access_token;
 }
 
 async function getSheetData(accessToken, spreadsheetId, sheetName) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}`;
+    
     const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
     });
+    
+    if (!response.ok) {
+        throw new Error(`Sheets API error: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     return data.values || [];
 }
 
 async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}:append?valueInputOption=RAW`;
+    
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -143,9 +185,11 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
         },
         body: JSON.stringify({ values })
     });
+    
     if (!response.ok) {
         const error = await response.text();
         throw new Error(`Sheets API error: ${error}`);
     }
+    
     return response.json();
 }
