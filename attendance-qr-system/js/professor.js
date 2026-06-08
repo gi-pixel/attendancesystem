@@ -605,6 +605,13 @@ document.getElementById('exportAnalyticsPdfBtn')?.addEventListener('click', asyn
     const btn = document.getElementById('exportAnalyticsPdfBtn');
     const originalText = btn.innerHTML;
     
+    // Check if analytics data is loaded
+    const analyticsResults = document.getElementById('analyticsResults');
+    if (analyticsResults.style.display !== 'block') {
+        alert('Please load analytics data first (click "Load Analytics")');
+        return;
+    }
+    
     btn.disabled = true;
     btn.innerHTML = '<span class="loading-spinner"></span> Generating PDF...';
     
@@ -613,102 +620,236 @@ document.getElementById('exportAnalyticsPdfBtn')?.addEventListener('click', asyn
         const courseSelect = document.getElementById('analyticsCourseSelect');
         const courseName = courseSelect.options[courseSelect.selectedIndex]?.text || courseSelect.value;
         
-        // Create a clone of the analytics content for PDF
-        const analyticsContent = document.getElementById('analyticsResults');
-        const originalDisplay = analyticsContent.style.display;
+        // Wait a moment for any pending renders
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Create PDF container
-        const pdfContainer = document.createElement('div');
-        pdfContainer.style.padding = '20px';
-        pdfContainer.style.backgroundColor = 'white';
-        pdfContainer.style.fontFamily = 'Inter, sans-serif';
-        
-        // Copy content
-        pdfContainer.innerHTML = `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #4f46e5; margin-bottom: 10px;">GroupForge Attendance Report</h1>
-                <h2 style="color: #374151; margin-bottom: 5px;">${courseName}</h2>
-                <p style="color: #6b7280;">Generated: ${new Date().toLocaleString()}</p>
-            </div>
-            <div style="margin-bottom: 30px;">
-                ${document.getElementById('analyticsSummary').innerHTML}
-            </div>
-            <div style="margin-bottom: 30px;">
-                <h3 style="margin-bottom: 15px; color: #1f2937;">Weekly Attendance Trend</h3>
-                <canvas id="pdfChart" width="800" height="400"></canvas>
-            </div>
-            <div>
-                <h3 style="margin-bottom: 15px; color: #1f2937;">Student Breakdown</h3>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                    <thead>
-                        <tr style="background-color: #f3f4f6;">
-                            <th style="padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Name</th>
-                            <th style="padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Index</th>
-                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">Present</th>
-                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">Total</th>
-                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">%</th>
-                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Array.from(document.querySelectorAll('#studentTableBody tr')).map(row => {
-                            const cells = row.querySelectorAll('td');
-                            return `
-                                <tr>
-                                    <td style="padding: 6px; border: 1px solid #e5e7eb;">${cells[0]?.textContent || ''}</td>
-                                    <td style="padding: 6px; border: 1px solid #e5e7eb;">${cells[1]?.textContent || ''}</td>
-                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[2]?.textContent || ''}</td>
-                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[3]?.textContent || ''}</td>
-                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[4]?.textContent || ''}</td>
-                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[5]?.textContent || ''}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        
-        document.body.appendChild(pdfContainer);
-        
-        // Clone the chart canvas
-        const originalCanvas = document.getElementById('weeklyChart');
-        if (originalCanvas) {
-            const newCanvas = document.createElement('canvas');
-            newCanvas.width = 800;
-            newCanvas.height = 400;
-            const ctx = newCanvas.getContext('2d');
-            ctx.drawImage(originalCanvas, 0, 0, 800, 400);
-            pdfContainer.querySelector('#pdfChart').replaceWith(newCanvas);
+        // Get the chart canvas
+        const chartCanvas = document.getElementById('weeklyChart');
+        if (!chartCanvas) {
+            throw new Error('Chart not found');
         }
         
-        // Generate PDF
+        // Get student table data directly from the DOM
+        const studentRows = document.querySelectorAll('#studentTableBody tr');
+        const studentData = [];
+        studentRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length) {
+                studentData.push({
+                    name: cells[0]?.textContent || '',
+                    index: cells[1]?.textContent || '',
+                    present: cells[2]?.textContent || '',
+                    total: cells[3]?.textContent || '',
+                    percent: cells[4]?.textContent || '',
+                    status: cells[5]?.textContent || ''
+                });
+            }
+        });
+        
+        // Get summary stats
+        const summaryCards = document.querySelectorAll('#analyticsSummary .summary-card');
+        const summary = {
+            totalStudents: summaryCards[0]?.querySelector('.value')?.textContent || '0',
+            totalWeeks: summaryCards[1]?.querySelector('.value')?.textContent || '0',
+            totalAttendance: summaryCards[2]?.querySelector('.value')?.textContent || '0',
+            avgPercentage: summaryCards[3]?.querySelector('.value')?.textContent || '0'
+        };
+        
+        // Create HTML content for PDF (avoid cloning DOM issues)
+        const currentDate = new Date().toLocaleString();
+        
+        const pdfHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Attendance Report - ${courseName}</title>
+                <style>
+                    body {
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                        padding: 40px;
+                        color: #1f2937;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        border-bottom: 2px solid #4f46e5;
+                        padding-bottom: 20px;
+                    }
+                    .header h1 {
+                        color: #4f46e5;
+                        margin-bottom: 5px;
+                        font-size: 24px;
+                    }
+                    .header h2 {
+                        color: #374151;
+                        margin-bottom: 5px;
+                        font-size: 18px;
+                    }
+                    .header p {
+                        color: #6b7280;
+                        font-size: 12px;
+                    }
+                    .summary-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 15px;
+                        margin-bottom: 30px;
+                    }
+                    .summary-card {
+                        background: #f3f4f6;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 12px;
+                    }
+                    .summary-card .value {
+                        font-size: 28px;
+                        font-weight: 700;
+                        color: #4f46e5;
+                    }
+                    .summary-card .label {
+                        font-size: 11px;
+                        color: #6b7280;
+                        margin-top: 5px;
+                    }
+                    .section-title {
+                        font-size: 16px;
+                        font-weight: 600;
+                        margin: 20px 0 15px 0;
+                        color: #1f2937;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 11px;
+                    }
+                    th, td {
+                        border: 1px solid #e5e7eb;
+                        padding: 8px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #f3f4f6;
+                        font-weight: 600;
+                    }
+                    .text-center {
+                        text-align: center;
+                    }
+                    .status-good { color: #10b981; font-weight: 600; }
+                    .status-warning { color: #f59e0b; font-weight: 600; }
+                    .status-danger { color: #ef4444; font-weight: 600; }
+                    .footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px solid #e5e7eb;
+                        font-size: 10px;
+                        color: #9ca3af;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>GroupForge Attendance Report</h1>
+                    <h2>${courseName}</h2>
+                    <p>Generated: ${currentDate}</p>
+                </div>
+                
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="value">${summary.totalStudents}</div>
+                        <div class="label">Total Students</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${summary.totalWeeks}</div>
+                        <div class="label">Total Weeks</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${summary.totalAttendance}</div>
+                        <div class="label">Total Records</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${summary.avgPercentage}%</div>
+                        <div class="label">Avg Attendance</div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Student Attendance Breakdown</div>
+                <table>
+                    <thead>
+                        <tr><th>Name</th><th>Index</th><th class="text-center">Present</th><th class="text-center">Total</th><th class="text-center">%</th><th class="text-center">Status</th></tr>
+                    </thead>
+                    <tbody>
+                        ${studentData.map(s => `
+                            <tr>
+                                <td>${escapeHtml(s.name)}</td>
+                                <td>${s.index}</td>
+                                <td class="text-center">${s.present}</td>
+                                <td class="text-center">${s.total}</td>
+                                <td class="text-center">${s.percent}</td>
+                                <td class="text-center status-${s.status === '✅ Good' ? 'good' : (s.status === '⚠️ Warning' ? 'warning' : 'danger')}">${s.status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="footer">
+                    <p>GroupForge Attendance System • Report generated automatically</p>
+                </div>
+            </body>
+            </html>
+        `;
+        
+        // Create a blob and generate PDF
+        const blob = new Blob([pdfHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        iframe.src = url;
+        iframe.onload = () => {
+            setTimeout(() => {
+                iframe.contentWindow.print();
+                URL.revokeObjectURL(url);
+                document.body.removeChild(iframe);
+            }, 500);
+        };
+        
+        // Alternative: Use html2pdf with the generated HTML
+        // Create a temporary div with the HTML content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = pdfHtml;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
+        
         const opt = {
             margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `${courseName}_attendance_report_${new Date().toISOString().slice(0, 10)}.pdf`,
+            filename: `${courseName.replace(/[^a-z0-9]/gi, '_')}_attendance_${new Date().toISOString().slice(0, 10)}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
         
-        await html2pdf().set(opt).from(pdfContainer).save();
+        await html2pdf().set(opt).from(tempDiv).save();
         
         // Clean up
-        document.body.removeChild(pdfContainer);
+        document.body.removeChild(tempDiv);
         
     } catch (error) {
         console.error('PDF generation error:', error);
-        alert('Failed to generate PDF. Please try again.');
+        alert('Failed to generate PDF: ' + error.message);
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
 });
 
-// Helper function to escape HTML
+// Helper function for escapeHtml (if not already defined)
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    return String(str).replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
