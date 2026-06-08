@@ -1,12 +1,14 @@
 const jwt = require('jsonwebtoken');
 const { sendTelegramAlert } = require('./telegram.js');
 
+
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
     
-    const { course, duration } = req.body;
+    const { course, duration, requireLocation, classLat, classLng } = req.body;
+
     const sessionId = `SESSION_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const expiresAt = new Date(Date.now() + duration * 60000).toISOString();
     
@@ -14,7 +16,7 @@ module.exports = async (req, res) => {
         const token = await getAccessToken();
         
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'sessions', [
-            [sessionId, course, expiresAt, new Date().toISOString()]
+            [sessionId, course, expiresAt, new Date().toISOString(), requireLocation ? 'YES' : 'NO', classLat || '', classLng || '']
         ]);
         
         // Send Telegram Alert for session start

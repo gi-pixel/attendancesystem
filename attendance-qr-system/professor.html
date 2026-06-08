@@ -58,6 +58,24 @@
                     <input type="number" id="sessionDuration" value="15" min="5" max="60">
                     <small>QR code will expire after this time</small>
                 </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.2rem; cursor: pointer;">
+                        <input type="checkbox" id="locationToggle">
+                        <span>Require location verification</span>
+                    </label>
+                    <small>Students must be within 30 meters of classroom to mark attendance</small>
+                </div>
+
+                <div class="form-group" id="locationCoords" style="display: none;">
+                    <label>Classroom Coordinates</label>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <input type="text" id="classLat" placeholder="Latitude" style="flex: 1;">
+                        <input type="text" id="classLng" placeholder="Longitude" style= "flex: 1;">
+                        <button type="button" id="getCurrentLocationBtn" class="btn-secondary">Get Current</button>
+                    </div>
+                    <small>Set the classroom location for distance check</small>
+                </div>
                 <button class="btn-primary" id="generateBtn">Generate QR Code</button>
             </div>
         </div>
@@ -82,6 +100,8 @@
                 </div>
             </div>
         </div>
+
+
     </div>
 
     <!-- Active Sessions Tab -->

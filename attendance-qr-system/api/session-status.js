@@ -19,6 +19,10 @@ module.exports = async (req, res) => {
             active,
             expiresIn: active ? expiresAt - Date.now() : 0,
             expiresAt: expiresAt,
+            requireLocation: sessionRow[4] || 'NO',
+            classLat: sessionRow[5] || null,
+            classLng: sessionRow[6] || null,
+
             course: sessionRow[1]
         });
     } catch (error) {

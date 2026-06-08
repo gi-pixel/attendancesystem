@@ -1,5 +1,3 @@
-// Shared functions for both student and professor pages
-
 function showMessage(element, text, type) {
     if (!element) return;
     element.textContent = text;

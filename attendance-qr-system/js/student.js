@@ -7,6 +7,10 @@ const messageDiv = document.getElementById('message');
 const sessionInfo = document.getElementById('sessionInfo');
 const courseDisplay = document.getElementById('courseDisplay');
 
+let userLocation = null;
+let locationRequired = false;
+let classroomLocation = null;
+
 // Get session from URL
 const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get('session');
@@ -170,6 +174,14 @@ async function checkSessionStatus() {
         submitBtn.disabled = true;
         return;
     }
+
+    // Store location requirement
+    locationRequired = data.requireLocation === 'YES';
+    if (locationRequired && data.classLat && data.classLng) {
+        classroomLocation = { lat: parseFloat(data.classLat), lng: parseFloat(data.classLng) };
+        const locationDiv = document.getElementById('locationStatus');
+        if (locationDiv) locationDiv.style.display = 'block';
+    }
     
     try {
         const response = await fetch(`/api/session-status?session=${sessionId}`);
@@ -228,6 +240,34 @@ async function submitAttendance() {
         studentIndex.focus();
         return;
     }
+
+    // If location required, verify before submission
+    if (locationRequired && classroomLocation) {
+        const locationStatus = document.getElementById('locationMessage');
+        locationStatus.innerHTML = ' Verifying your location...';
+        
+        try {
+            const location = await getUserLocation();
+            const distance = calculateDistance(
+                classroomLocation.lat, classroomLocation.lng,
+                location.lat, location.lng
+            );
+            
+            if (distance > 30) {
+                locationStatus.innerHTML = ` You are ${Math.round(distance)} meters away. Must be within 30 meters of classroom.`;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Attendance';
+                return;
+            }
+            
+            locationStatus.innerHTML = `Location verified (${Math.round(distance)}m from classroom)`;
+        } catch (error) {
+            locationStatus.innerHTML = ` ${error.message}`;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Attendance';
+            return;
+        }
+    }
     
     if (!sessionId) {
         showMessage(messageDiv, 'Invalid session. Please scan QR code again.', 'error');
@@ -250,14 +290,16 @@ async function submitAttendance() {
                 course: courseFromUrl,
                 name: name,
                 index: index,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                userLat: userLocation?.lat,
+                userLng: userLocation?.lng
             })
         });
         
         const data = await response.json();
         
         if (response.ok && data.success) {
-            showMessage(messageDiv, `✅ Attendance recorded for ${name}`, 'success');
+            showMessage(messageDiv, ` Attendance recorded for ${name}`, 'success');
             studentName.value = '';
             studentIndex.value = '';
             clearFieldErrors();
@@ -272,6 +314,7 @@ async function submitAttendance() {
         submitBtn.textContent = 'Submit Attendance';
     }
 }
+
 
 // ========== EVENT LISTENERS ==========
 
@@ -290,6 +333,54 @@ if (studentName) {
     studentName.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') submitAttendance();
     });
+}
+
+// Geolocation variables
+let userLocation = null;
+let locationRequired = false;
+
+// Get user's current location
+function getUserLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported by your browser'));
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                resolve(userLocation);
+            },
+            (error) => {
+                let message = 'Location access denied. ';
+                if (error.code === 1) message += 'Please enable location in your browser settings.';
+                else if (error.code === 2) message += 'Location unavailable.';
+                else message += 'Please try again.';
+                reject(new Error(message));
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
+}
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lng2 - lng1) * Math.PI / 180;
+    
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    return R * c; // distance in meters
 }
 
 // Initialize

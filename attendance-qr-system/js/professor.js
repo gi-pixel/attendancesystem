@@ -1,10 +1,11 @@
-// Tab Switching
 const tabs = document.querySelectorAll('.tab-btn');
 const panes = document.querySelectorAll('.tab-pane');
 const classListFile = document.getElementById('classListFile');
 const uploadBtn = document.getElementById('uploadClassListBtn');
 const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
 const uploadResult = document.getElementById('uploadResult');
+const locationToggle = document.getElementById('locationToggle');
+const locationCoords = document.getElementById('locationCoords');
 
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -240,7 +241,6 @@ document.getElementById('exportTodayBtn')?.addEventListener('click', async () =>
     }
 });
 
-// Remove the old auto-load setInterval for today's attendance
 // Keep the setInterval for sessions only
 setInterval(() => {
     if (document.querySelector('.tab-btn[data-tab="sessions"]')?.classList.contains('active')) {
@@ -296,12 +296,6 @@ document.getElementById('loadHistoryBtn')?.addEventListener('click', async () =>
             <td>${record.sessionId || '-'}</td>
         </tr>
     `).join('');
-});
-
-// Logout
-document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    sessionStorage.removeItem('professor_authenticated');
-    window.location.href = '/';
 });
 
 // Load initial data
@@ -845,6 +839,32 @@ document.getElementById('exportAnalyticsPdfBtn')?.addEventListener('click', asyn
         btn.innerHTML = originalText;
     }
 });
+
+
+
+locationToggle?.addEventListener('change', (e) => {
+    locationCoords.style.display = e.target.checked ? 'block' : 'none';
+});
+
+// Get current location for classroom
+document.getElementById('getCurrentLocationBtn')?.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        alert('Geolocation not supported');
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            document.getElementById('classLat').value = position.coords.latitude;
+            document.getElementById('classLng').value = position.coords.longitude;
+            alert('Classroom location set!');
+        },
+        (error) => {
+            alert('Error getting location: ' + error.message);
+        }
+    );
+});
+
 
 // Helper function for escapeHtml (if not already defined)
 function escapeHtml(str) {

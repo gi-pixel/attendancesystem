@@ -55,6 +55,24 @@ module.exports = async (req, res) => {
             return res.status(400).json({ success: false, message: 'You already marked attendance for this week' });
         }
         
+        // If location required, verify distance (add this after session validation)
+        if (session[4] === 'YES' && session[5] && session[6]) {
+            const { userLat, userLng } = req.body;
+            
+            if (!userLat || !userLng) {
+                return res.status(400).json({ success: false, message: 'Location required for attendance' });
+            }
+            
+            const distance = calculateDistance(
+                parseFloat(session[5]), parseFloat(session[6]),
+                userLat, userLng
+            );
+            
+            if (distance > 30) {
+                return res.status(400).json({ success: false, message: `You are ${Math.round(distance)}m away. Must be within 30m of classroom.` });
+            }
+        }
+        
         // Record attendance
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'attendance', [
             [timestamp, course, name, index, sessionId, weekNumber.toString(), '2025-2026', '1']
