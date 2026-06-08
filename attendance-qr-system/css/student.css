@@ -198,6 +198,36 @@ input.error {
     color: var(--gray-400);
 }
 
+/* Countdown Timer */
+.countdown-timer {
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    margin: 0 1rem 1rem 1rem;
+}
+
+.countdown-timer span:first-child {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+}
+
+#countdownDisplay {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-600);
+}
+
+.countdown-warning {
+    color: #ef4444 !important;
+    animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
 @media (max-width: 768px) {
     .attendance-card {
         margin: 1rem;

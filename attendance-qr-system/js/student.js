@@ -78,6 +78,49 @@ function validateIndexNumber(index) {
     return { valid: true, message: '' };
 }
 
+// Countdown Timer
+let countdownInterval = null;
+
+function startCountdown(expiresAt) {
+    const countdownDiv = document.getElementById('countdownTimer');
+    const countdownDisplay = document.getElementById('countdownDisplay');
+    
+    if (!countdownDiv || !countdownDisplay) return;
+    
+    countdownDiv.style.display = 'block';
+    
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const expiry = new Date(expiresAt).getTime();
+        const distance = expiry - now;
+        
+        if (distance <= 0) {
+            clearInterval(countdownInterval);
+            countdownDisplay.textContent = 'Expired';
+            countdownDisplay.classList.add('countdown-warning');
+            submitBtn.disabled = true;
+            sessionInfo.innerHTML = '<span>🔴 Session Closed - Attendance no longer accepted</span>';
+            return;
+        }
+        
+        const minutes = Math.floor(distance / 60000);
+        const seconds = Math.floor((distance % 60000) / 1000);
+        
+        countdownDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (minutes < 1) {
+            countdownDisplay.classList.add('countdown-warning');
+        } else {
+            countdownDisplay.classList.remove('countdown-warning');
+        }
+    }
+    
+    updateCountdown();
+    countdownInterval = setInterval(updateCountdown, 1000);
+}
+
 // Show field error under input
 function showFieldError(field, message) {
     const parent = field.parentElement;
@@ -137,8 +180,8 @@ async function checkSessionStatus() {
             submitBtn.disabled = true;
             if (messageDiv) showMessage(messageDiv, 'This attendance session has closed.', 'error');
         } else if (data.expiresIn) {
-            const minutesLeft = Math.floor(data.expiresIn / 60000);
-            sessionInfo.innerHTML = `<span>🟢 Session Active • Expires in ${minutesLeft} minutes</span>`;
+            sessionInfo.innerHTML = '<span>🟢 Session Active</span>';
+            startCountdown(data.expiresAt);
         }
     } catch (error) {
         console.error('Session check failed:', error);
@@ -190,14 +233,6 @@ async function submitAttendance() {
         showMessage(messageDiv, 'Invalid session. Please scan QR code again.', 'error');
         return;
     }
-    
-    // ========== VERIFY STUDENT IN CLASS LIST ==========
-    // const verification = await verifyStudent(index);
-    // if (!verification.valid) {
-    //     showMessage(messageDiv, verification.message, 'error');
-    //     return;
-    // }
-    // ========== END VERIFICATION ==========
     
     // Disable button during submission
     submitBtn.disabled = true;

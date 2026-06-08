@@ -18,6 +18,7 @@ module.exports = async (req, res) => {
         res.status(200).json({
             active,
             expiresIn: active ? expiresAt - Date.now() : 0,
+            expiresAt: expiresAt,
             course: sessionRow[1]
         });
     } catch (error) {
