@@ -11,11 +11,15 @@ module.exports = async (req, res) => {
             .map(row => ({
                 sessionId: row[0],
                 course: row[1],
-                expiresAt: row[2]
+                expiresAt: row[2],
+                requireLocation: row[4] === 'YES' ? 'YES' : 'NO',
+                classLat: row[5] || null,
+                classLng: row[6] || null
             }));
         
         res.status(200).json({ sessions: activeSessions });
     } catch (error) {
+        console.error('Error loading active sessions:', error);
         res.status(500).json({ error: error.message });
     }
 };

@@ -519,6 +519,60 @@ body {
     padding: 0.5rem 0;
 }
 
+/* Delete Session Button */
+.btn-delete-session {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+}
+
+.btn-delete-session:hover {
+    background: #dc2626;
+    transform: scale(1.02);
+}
+
+.sessions-table-wrapper {
+    overflow-x: auto;
+}
+
+#sessionsTable {
+    width: 100%;
+    font-size: 0.8rem;
+}
+
+#sessionsTable th, #sessionsTable td {
+    padding: 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+#sessionsTable th {
+    background: var(--gray-50);
+    font-weight: 600;
+}
+
+.status-good {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.status-danger {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+code {
+    background: var(--gray-100);
+    padding: 0.2rem 0.3rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+}
+
 /* PDF Export Styles */
 @media print {
     .navbar, .tabs, .btn-primary, .tab-btn, .footer, .theme-toggle {

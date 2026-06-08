@@ -83,45 +83,101 @@ document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
     setTimeout(() => msg.textContent = '', 3000);
 });
 
-// Load Active Sessions
-async function loadActiveSessions() {
+// Load Active Sessions (Manual)
+let sessionsRefreshInterval = null;
+
+document.getElementById('loadSessionsBtn')?.addEventListener('click', async () => {
+    const loadBtn = document.getElementById('loadSessionsBtn');
+    const loading = document.getElementById('sessionsLoading');
+    const tableWrapper = document.getElementById('sessionsTableWrapper');
+    const tbody = document.getElementById('sessionsTableBody');
+    
+    // Show loading
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    loading.style.display = 'block';
+    tableWrapper.style.display = 'none';
+    
     try {
         const response = await fetch('/api/active-sessions');
         const data = await response.json();
-        const container = document.getElementById('sessionsList');
         
         if (!data.sessions || data.sessions.length === 0) {
-            container.innerHTML = '<div class="empty-state">No active sessions</div>';
-            return;
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No active sessions found</td></tr>';
+        } else {
+            tbody.innerHTML = data.sessions.map(session => {
+                const expiresAt = new Date(session.expiresAt);
+                const now = new Date();
+                const timeLeft = expiresAt - now;
+                const minutesLeft = Math.floor(timeLeft / 60000);
+                const secondsLeft = Math.floor((timeLeft % 60000) / 1000);
+                const timeLeftText = timeLeft > 0 ? `${minutesLeft}m ${secondsLeft}s` : 'Expired';
+                const locationRequired = session.requireLocation === 'YES' ? ' Yes' : ' No';
+                
+                return `
+                    <tr>
+                        <td><strong>${session.course}</strong></td>
+                        <td><code style="font-size: 0.7rem;">${session.sessionId}</code></td>
+                        <td>${expiresAt.toLocaleTimeString()}</td>
+                        <td class="${timeLeft < 60000 ? 'status-danger' : 'status-good'}">${timeLeftText}</td>
+                        <td>${locationRequired}</td>
+                        <td>
+                            <button class="btn-delete-session" data-session="${session.sessionId}" data-course="${session.course}">❌ Close</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
         
-        container.innerHTML = data.sessions.map(session => `
-            <div class="session-item">
-                <div class="session-course">${session.course}</div>
-                <div class="session-details">Session: ${session.sessionId}<br>Expires: ${new Date(session.expiresAt).toLocaleTimeString()}</div>
-                <div class="session-status status-active">Active</div>
-                <div class="session-actions">
-                    <button class="btn-close" onclick="closeSession('${session.sessionId}')">Close Session</button>
-                </div>
-            </div>
-        `).join('');
+        tableWrapper.style.display = 'block';
+        
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.btn-delete-session').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const sessionId = btn.getAttribute('data-session');
+                const course = btn.getAttribute('data-course');
+                if (confirm(`Close session for ${course}? Students will no longer be able to mark attendance.`)) {
+                    await closeSession(sessionId);
+                    document.getElementById('loadSessionsBtn').click(); // Refresh list
+                }
+            });
+        });
+        
     } catch (error) {
-        console.error('Error loading sessions');
+        console.error('Error loading sessions:', error);
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error loading sessions. Please try again.</td></tr>';
+        tableWrapper.style.display = 'block';
+    } finally {
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = 'Load Active Sessions';
+        loading.style.display = 'none';
     }
-}
+});
 
-// Close Session
-window.closeSession = async (sessionId) => {
-    if (confirm('Close this session? Students will no longer be able to mark attendance.')) {
+// Close Session function
+async function closeSession(sessionId) {
+    try {
         await fetch('/api/close-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId })
         });
-        loadActiveSessions();
-        loadTodayAttendance();
+        showAlert('Session closed successfully', 'success');
+    } catch (error) {
+        console.error('Error closing session:', error);
+        showAlert('Failed to close session', 'error');
     }
-};
+}
+
+// Helper function for alerts (if not exists)
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 3000);
+}
+
 
 // Load Today's Attendance
 async function loadTodayAttendance() {
@@ -297,19 +353,6 @@ document.getElementById('loadHistoryBtn')?.addEventListener('click', async () =>
         </tr>
     `).join('');
 });
-
-// Load initial data
-loadActiveSessions();
-
-// Refresh every 30 seconds
-setInterval(() => {
-    if (document.querySelector('.tab-btn[data-tab="sessions"]')?.classList.contains('active')) {
-        loadActiveSessions();
-    }
-    if (document.querySelector('.tab-btn[data-tab="attendance"]')?.classList.contains('active')) {
-        loadTodayAttendance();
-    }
-}, 30000);
 
 
 // Upload CSV/Excel with loading indicator

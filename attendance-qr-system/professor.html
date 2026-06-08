@@ -104,20 +104,39 @@
 
     </div>
 
-    <!-- Active Sessions Tab -->
-    <div class="tab-pane" id="tab-sessions">
-        <div class="card">
-            <div class="card-header">
-                <h2>Active Sessions</h2>
-                <p>Currently open attendance sessions</p>
-            </div>
-            <div class="card-body">
-                <div id="sessionsList">
-                    <div class="empty-state">No active sessions</div>
+        <!-- Active Sessions Tab -->
+        <div class="tab-pane" id="tab-sessions">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Active Sessions</h2>
+                    <p>View and manage currently active QR sessions</p>
+                </div>
+                <div class="card-body">
+                    <button class="btn-primary" id="loadSessionsBtn" style="margin-bottom: 1rem;">Load Active Sessions</button>
+                    
+                    <div id="sessionsLoading" style="display: none; text-align: center; padding: 1rem;">
+                        <div class="loading-spinner"></div>
+                        <p>Loading sessions...</p>
+                    </div>
+                    
+                    <div class="sessions-table-wrapper" id="sessionsTableWrapper" style="display: none;">
+                        <table class="attendance-table" id="sessionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Session ID</th>
+                                    <th>Expires At</th>
+                                    <th>Time Left</th>
+                                    <th>Location</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessionsTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Today's Attendance Tab -->
     <div class="tab-pane" id="tab-attendance">
