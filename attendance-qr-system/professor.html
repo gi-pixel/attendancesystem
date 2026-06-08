@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/professor.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
@@ -259,7 +260,8 @@
                 </div>
                 
                 <!-- Export Button -->
-                <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">📥 Export to CSV</button>
+                <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">Export to CSV</button>
+                <button class="btn-primary" id="exportAnalyticsPdfBtn" style="margin-top: 1rem; background: linear-gradient(135deg, #dc2626, #b91c1c); margin-left: 0.5rem;">Export to PDF</button>
             </div>
         </div>
     </div>

@@ -600,6 +600,111 @@ document.getElementById('exportAnalyticsBtn')?.addEventListener('click', () => {
     URL.revokeObjectURL(url);
 });
 
+// Export Analytics to PDF
+document.getElementById('exportAnalyticsPdfBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('exportAnalyticsPdfBtn');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Generating PDF...';
+    
+    try {
+        // Get course name
+        const courseSelect = document.getElementById('analyticsCourseSelect');
+        const courseName = courseSelect.options[courseSelect.selectedIndex]?.text || courseSelect.value;
+        
+        // Create a clone of the analytics content for PDF
+        const analyticsContent = document.getElementById('analyticsResults');
+        const originalDisplay = analyticsContent.style.display;
+        
+        // Create PDF container
+        const pdfContainer = document.createElement('div');
+        pdfContainer.style.padding = '20px';
+        pdfContainer.style.backgroundColor = 'white';
+        pdfContainer.style.fontFamily = 'Inter, sans-serif';
+        
+        // Copy content
+        pdfContainer.innerHTML = `
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #4f46e5; margin-bottom: 10px;">GroupForge Attendance Report</h1>
+                <h2 style="color: #374151; margin-bottom: 5px;">${courseName}</h2>
+                <p style="color: #6b7280;">Generated: ${new Date().toLocaleString()}</p>
+            </div>
+            <div style="margin-bottom: 30px;">
+                ${document.getElementById('analyticsSummary').innerHTML}
+            </div>
+            <div style="margin-bottom: 30px;">
+                <h3 style="margin-bottom: 15px; color: #1f2937;">Weekly Attendance Trend</h3>
+                <canvas id="pdfChart" width="800" height="400"></canvas>
+            </div>
+            <div>
+                <h3 style="margin-bottom: 15px; color: #1f2937;">Student Breakdown</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background-color: #f3f4f6;">
+                            <th style="padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Name</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Index</th>
+                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">Present</th>
+                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">Total</th>
+                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">%</th>
+                            <th style="padding: 8px; text-align: center; border: 1px solid #e5e7eb;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Array.from(document.querySelectorAll('#studentTableBody tr')).map(row => {
+                            const cells = row.querySelectorAll('td');
+                            return `
+                                <tr>
+                                    <td style="padding: 6px; border: 1px solid #e5e7eb;">${cells[0]?.textContent || ''}</td>
+                                    <td style="padding: 6px; border: 1px solid #e5e7eb;">${cells[1]?.textContent || ''}</td>
+                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[2]?.textContent || ''}</td>
+                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[3]?.textContent || ''}</td>
+                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[4]?.textContent || ''}</td>
+                                    <td style="padding: 6px; text-align: center; border: 1px solid #e5e7eb;">${cells[5]?.textContent || ''}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.body.appendChild(pdfContainer);
+        
+        // Clone the chart canvas
+        const originalCanvas = document.getElementById('weeklyChart');
+        if (originalCanvas) {
+            const newCanvas = document.createElement('canvas');
+            newCanvas.width = 800;
+            newCanvas.height = 400;
+            const ctx = newCanvas.getContext('2d');
+            ctx.drawImage(originalCanvas, 0, 0, 800, 400);
+            pdfContainer.querySelector('#pdfChart').replaceWith(newCanvas);
+        }
+        
+        // Generate PDF
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `${courseName}_attendance_report_${new Date().toISOString().slice(0, 10)}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+        };
+        
+        await html2pdf().set(opt).from(pdfContainer).save();
+        
+        // Clean up
+        document.body.removeChild(pdfContainer);
+        
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        alert('Failed to generate PDF. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
 // Helper function to escape HTML
 function escapeHtml(str) {
     if (!str) return '';

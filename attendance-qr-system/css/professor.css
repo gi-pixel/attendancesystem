@@ -519,6 +519,22 @@ body {
     padding: 0.5rem 0;
 }
 
+/* PDF Export Styles */
+@media print {
+    .navbar, .tabs, .btn-primary, .tab-btn, .footer, .theme-toggle {
+        display: none !important;
+    }
+    
+    .analytics-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .attendance-table {
+        font-size: 10px;
+    }
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
     .analytics-summary {
