@@ -103,10 +103,17 @@
         <div class="card">
             <div class="card-header">
                 <h2>Today's Attendance</h2>
-                <p>Records from all sessions today</p>
+                <p>View and export today's attendance records</p>
             </div>
             <div class="card-body">
-                <div class="stats-grid" id="todayStats">
+                <!-- Add Load Button -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <button class="btn-primary" id="loadTodayBtn" style="flex: 1;">Load Today's Records</button>
+                    <button class="btn-primary" id="exportTodayBtn" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669);">📥 Export to CSV</button>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="todayStats" style="display: none;">
                     <div class="stat-card">
                         <div class="stat-number" id="totalToday">0</div>
                         <div class="stat-label">Total Records</div>
@@ -116,17 +123,22 @@
                         <div class="stat-label">Unique Students</div>
                     </div>
                 </div>
-                <div class="table-wrapper">
+                
+                <!-- Loading Indicator -->
+                <div id="todayLoading" style="display: none; text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading today's attendance...</p>
+                </div>
+                
+                <!-- Table -->
+                <div class="table-wrapper" id="todayTableWrapper" style="display: none;">
                     <table class="attendance-table" id="attendanceTable">
                         <thead>
                             <tr><th>Time</th><th>Course</th><th>Name</th><th>Index</th></tr>
                         </thead>
-                        <tbody id="attendanceTableBody">
-                            <tr><td colspan="4" class="empty-state">No records today</td></tr>
-                        </tbody>
+                        <tbody id="attendanceTableBody"></tbody>
                     </table>
                 </div>
-                <button class="btn-primary" id="exportBtn" style="margin-top: 1rem;"> Export to CSV</button>
             </div>
         </div>
     </div>

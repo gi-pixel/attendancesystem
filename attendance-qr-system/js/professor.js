@@ -150,6 +150,105 @@ async function loadTodayAttendance() {
     }
 }
 
+// Load Today's Attendance (Manual)
+document.getElementById('loadTodayBtn')?.addEventListener('click', async () => {
+    const loadBtn = document.getElementById('loadTodayBtn');
+    const loading = document.getElementById('todayLoading');
+    const stats = document.getElementById('todayStats');
+    const tableWrapper = document.getElementById('todayTableWrapper');
+    const tbody = document.getElementById('attendanceTableBody');
+    const totalSpan = document.getElementById('totalToday');
+    const uniqueSpan = document.getElementById('uniqueToday');
+    
+    // Show loading
+    loadBtn.disabled = true;
+    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    loading.style.display = 'block';
+    stats.style.display = 'none';
+    tableWrapper.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/today-attendance');
+        const data = await response.json();
+        
+        totalSpan.textContent = data.total || 0;
+        uniqueSpan.textContent = data.unique || 0;
+        
+        if (!data.records || data.records.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No records today</td></tr>';
+        } else {
+            tbody.innerHTML = data.records.map(record => `
+                <tr>
+                    <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
+                    <td>${record.course}</td>
+                    <td>${escapeHtml(record.name)}</td>
+                    <td>${record.index}</td>
+                </tr>
+            `).join('');
+        }
+        
+        stats.style.display = 'grid';
+        tableWrapper.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading attendance:', error);
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Error loading data. Please try again.</td></tr>';
+        stats.style.display = 'grid';
+        tableWrapper.style.display = 'block';
+    } finally {
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = ' Load Today\'s Records';
+        loading.style.display = 'none';
+    }
+});
+
+// Export Today's Attendance as CSV
+document.getElementById('exportTodayBtn')?.addEventListener('click', async () => {
+    const exportBtn = document.getElementById('exportTodayBtn');
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '<span class="loading-spinner"></span> Exporting...';
+    
+    try {
+        const response = await fetch('/api/today-attendance');
+        const data = await response.json();
+        
+        if (!data.records || data.records.length === 0) {
+            alert('No attendance records to export');
+            return;
+        }
+        
+        let csv = 'Timestamp,Course,Name,Index Number\n';
+        data.records.forEach(record => {
+            csv += `"${record.timestamp}","${record.course}","${record.name}","${record.index}"\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert(` Exported ${data.records.length} records`);
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Failed to export data');
+    } finally {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = ' Export to CSV';
+    }
+});
+
+// Remove the old auto-load setInterval for today's attendance
+// Keep the setInterval for sessions only
+setInterval(() => {
+    if (document.querySelector('.tab-btn[data-tab="sessions"]')?.classList.contains('active')) {
+        loadActiveSessions();
+    }
+    // Remove today's attendance auto-refresh
+}, 30000);
+
 // Export CSV
 document.getElementById('exportBtn')?.addEventListener('click', async () => {
     const response = await fetch('/api/today-attendance?export=true');
@@ -207,7 +306,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
 
 // Load initial data
 loadActiveSessions();
-loadTodayAttendance();
 
 // Refresh every 30 seconds
 setInterval(() => {
