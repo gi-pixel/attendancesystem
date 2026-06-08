@@ -787,7 +787,7 @@ document.getElementById('exportAnalyticsPdfBtn')?.addEventListener('click', asyn
             </head>
             <body>
                 <div class="header">
-                    <h1>GroupForge Attendance Report</h1>
+                    <h1>ClassTrack Attendance Report</h1>
                     <h2>${courseName}</h2>
                     <p>Generated: ${currentDate}</p>
                 </div>
@@ -831,7 +831,7 @@ document.getElementById('exportAnalyticsPdfBtn')?.addEventListener('click', asyn
                 </table>
                 
                 <div class="footer">
-                    <p>GroupForge Attendance System • Report generated automatically</p>
+                    <p>ClassTrack Attendance System • Report generated automatically</p>
                 </div>
             </body>
             </html>
