@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { sendTelegramAlert } = require('./telegram.js');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -15,6 +16,25 @@ module.exports = async (req, res) => {
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'sessions', [
             [sessionId, course, expiresAt, new Date().toISOString()]
         ]);
+        
+        // Send Telegram Alert for session start
+        const courseNames = {
+            'CS101': ' Computer Science 101',
+            'MATH201': ' Mathematics 201',
+            'ENG101': ' English 101',
+            'PHYS101': ' Physics 101',
+            'CHEM101': ' Chemistry 101',
+            'BUS101': ' Business 101'
+        };
+        const courseDisplay = courseNames[course] || course;
+        
+        await sendTelegramAlert(
+            ` <b>Attendance Session Started</b>\n\n` +
+            `${courseDisplay}\n` +
+            `Session: <code>${sessionId}</code>\n` +
+            `Duration: ${duration} minutes\n` +
+            `Expires: ${new Date(expiresAt).toLocaleTimeString()}`
+        );
         
         res.status(200).json({
             success: true,

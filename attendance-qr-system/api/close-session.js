@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { sendTelegramAlert } = require('./telegram.js');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -10,24 +11,49 @@ module.exports = async (req, res) => {
     try {
         const token = await getAccessToken();
         
-        // Get all sessions
         const sessions = await getSheetData(token, process.env.SPREADSHEET_ID, 'sessions');
         
-        // Find the session row index and update it
         const sessionIndex = sessions.findIndex(row => row[0] === sessionId);
         
         if (sessionIndex !== -1) {
-            // Update expiresAt to now
+            const session = sessions[sessionIndex];
+            const course = session[1];
+            
+            // Get attendance count for this session
+            const attendance = await getSheetData(token, process.env.SPREADSHEET_ID, 'attendance');
+            const sessionAttendance = attendance.filter(row => row[4] === sessionId);
+            const attendanceCount = sessionAttendance.length;
+            
             await updateSheetRow(token, process.env.SPREADSHEET_ID, 'sessions', sessionIndex + 1, [
-                sessions[sessionIndex][0],
-                sessions[sessionIndex][1],
+                session[0],
+                session[1],
                 new Date().toISOString(),
-                sessions[sessionIndex][3]
+                session[3]
             ]);
+            
+            // Send Telegram Alert for session closed
+            const courseNames = {
+                'CS101': ' Computer Science 101',
+                'MATH201': ' Mathematics 201',
+                'ENG101': 'English 101',
+                'PHYS101': 'Physics 101',
+                'CHEM101': 'Chemistry 101',
+                'BUS101': ' Business 101'
+            };
+            const courseDisplay = courseNames[course] || course;
+            
+            await sendTelegramAlert(
+                ` <b>Attendance Session Closed</b>\n\n` +
+                `${courseDisplay}\n` +
+                ` Session: <code>${sessionId}</code>\n` +
+                ` Total Attendance: ${attendanceCount} student${attendanceCount !== 1 ? 's' : ''}\n` +
+                ` Closed at: ${new Date().toLocaleTimeString()}`
+            );
         }
         
         res.status(200).json({ success: true });
     } catch (error) {
+        console.error('Error closing session:', error);
         res.status(500).json({ error: error.message });
     }
 };
