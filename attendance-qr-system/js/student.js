@@ -20,12 +20,12 @@ const courseFromUrl = urlParams.get('course');
 // Display course name
 if (courseFromUrl && courseDisplay) {
     const courseNames = {
-        'CS101': 'Computer Science 101',
-        'MATH201': 'Mathematics 201',
-        'ENG101': 'English 101',
-        'PHYS101': 'Physics 101',
-        'CHEM101': 'Chemistry 101',
-        'BUS101': 'Business 101'
+        'CCS304': 'Telecommunication Networks',
+        'CIIT302': 'Advanced Intelligent Networks',
+        'CIIT306': 'Routing and Switching Technologies',
+        'CIIT332': 'Software Defined Networks',
+        'CIIT352': 'Windows Server Administration',
+        'SCOT322': 'Sociology of Technology'
     };
     courseDisplay.value = courseNames[courseFromUrl] || courseFromUrl;
 }
