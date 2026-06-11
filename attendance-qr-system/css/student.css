@@ -1,43 +1,75 @@
-/* Student Page Styles */
+/* Student Page Styles - Professional Design - No Horizontal Scroll */
+
+/* Base reset for no overflow */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+}
+
+* {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 .attendance-card {
     background: var(--white);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
     max-width: 500px;
-    width: 100%;
-    margin: 2rem auto;
+    width: calc(100% - 2rem);
+    margin: 1rem auto;
     overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid var(--gray-100);
+}
+
+.attendance-card:hover {
+    box-shadow: var(--shadow-2xl);
 }
 
 .card-header {
-    background: linear-gradient(135deg, var(--primary-50) 0%, var(--white) 100%);
-    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+    padding: 1.5rem 1rem;
     text-align: center;
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: none;
+    position: relative;
+}
+
+.card-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-400), var(--primary-200));
 }
 
 .header-icon {
-    font-size: 3rem;
+    font-size: 2.5rem;
     margin-bottom: 0.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .card-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    color: var(--gray-800);
+    color: white;
     margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
 }
 
 .card-header p {
-    font-size: 0.8rem;
-    color: var(--gray-500);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .session-info {
     background: var(--primary-50);
     padding: 0.75rem;
     text-align: center;
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--gray-100);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -49,34 +81,8 @@
     height: 8px;
     background: var(--success);
     border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-
-.input-group input.error {
-    border-color: #ef4444;
-}
-
-.field-error {
-    color: #ef4444;
-    font-size: 0.7rem;
-    margin-top: 0.25rem;
-}
-
-input.error {
-    border-color: #ef4444 !important;
-}
-
-.input-group input:focus {
-    border-color: var(--primary-500);
-}
-
-.input-group input.error:focus {
-    border-color: #ef4444;
-}
-
-@keyframes pulse {
-    0% { opacity: 0.5; transform: scale(0.8); }
-    100% { opacity: 1; transform: scale(1.2); }
+    animation: statusPulse 2s infinite;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 .session-info span {
@@ -86,72 +92,87 @@ input.error {
 }
 
 .card-body {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 
+/* Input Groups */
 .input-group {
     margin-bottom: 1rem;
 }
 
 .input-group label {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--gray-700);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
+    padding: 0.7rem 0.875rem;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-lg);
     font-size: 0.9rem;
-    transition: all 0.2s;
+    transition: var(--transition);
+    background: var(--white);
 }
 
-.input-group input:focus {
+.input-group input:focus,
+.input-group select:focus {
     outline: none;
     border-color: var(--primary-500);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.input-group select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    background: var(--white);
-    cursor: pointer;
+.input-group input.error,
+.input-group select.error {
+    border-color: var(--danger);
 }
 
-.input-group select:focus {
-    outline: none;
-    border-color: var(--primary-500);
+/* Field Error */
+.field-error {
+    color: var(--danger);
+    font-size: 0.65rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
+.field-error::before {
+    content: '⚠️';
+    font-size: 0.6rem;
+}
+
+/* Submit Button */
 .btn-submit {
     width: 100%;
-    padding: 0.85rem;
+    padding: 0.75rem;
     background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
     color: white;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: var(--transition);
     margin-top: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .btn-submit:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
 }
 
 .btn-submit:disabled {
@@ -160,42 +181,49 @@ input.error {
     transform: none;
 }
 
+/* Messages */
 .message {
     margin-top: 1rem;
     padding: 0.75rem;
     border-radius: var(--radius-md);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-align: center;
     display: none;
+    font-weight: 500;
 }
 
 .message.success {
     background: #dcfce7;
-    color: #166534;
+    color: var(--success-dark);
+    border-left: 3px solid var(--success);
     display: block;
 }
 
 .message.error {
     background: #fee2e2;
-    color: #991b1b;
+    color: var(--danger-dark);
+    border-left: 3px solid var(--danger);
     display: block;
 }
 
 .message.info {
     background: var(--primary-50);
     color: var(--primary-700);
+    border-left: 3px solid var(--primary-500);
     display: block;
 }
 
+/* Card Footer */
 .card-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--gray-200);
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--gray-100);
     text-align: center;
+    background: var(--gray-50);
 }
 
 .card-footer p {
-    font-size: 0.7rem;
-    color: var(--gray-400);
+    font-size: 0.65rem;
+    color: var(--gray-500);
 }
 
 /* Countdown Timer */
@@ -204,12 +232,15 @@ input.error {
     padding: 0.5rem;
     background: var(--gray-50);
     border-radius: var(--radius-md);
-    margin: 0 1rem 1rem 1rem;
+    margin: 0 0.75rem 0.75rem 0.75rem;
+    border: 1px solid var(--gray-100);
 }
 
 .countdown-timer span:first-child {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 #countdownDisplay {
@@ -219,43 +250,214 @@ input.error {
 }
 
 .countdown-warning {
-    color: #ef4444 !important;
-    animation: pulse 1s ease infinite;
+    color: var(--danger) !important;
+    animation: warningPulse 1s ease infinite;
 }
 
+/* Location Status */
 .location-status {
     background: var(--gray-50);
     border-radius: var(--radius-md);
     padding: 0.5rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-align: center;
+    margin: 0 0 0.75rem 0;
+    border: 1px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.location-status::before {
+    content: '📍';
+    font-size: 0.75rem;
 }
 
 .location-status.success {
     background: #dcfce7;
-    color: #166534;
+    color: var(--success-dark);
+    border-color: var(--success);
 }
 
 .location-status.error {
     background: #fee2e2;
-    color: #991b1b;
+    color: var(--danger-dark);
+    border-color: var(--danger);
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+/* Animations */
+@keyframes statusPulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
 }
 
+@keyframes warningPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Dark Mode Student Page */
+.dark-mode .attendance-card {
+    background: var(--gray-100);
+    border-color: var(--gray-200);
+}
+
+.dark-mode .card-header {
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-900) 100%);
+}
+
+.dark-mode .session-info {
+    background: var(--gray-200);
+    border-bottom-color: var(--gray-300);
+}
+
+.dark-mode .session-info span {
+    color: var(--primary-400);
+}
+
+.dark-mode .card-body {
+    background: var(--gray-100);
+}
+
+.dark-mode .input-group input,
+.dark-mode .input-group select {
+    background: var(--gray-200);
+    border-color: var(--gray-300);
+    color: var(--gray-800);
+}
+
+.dark-mode .input-group label {
+    color: var(--gray-600);
+}
+
+.dark-mode .card-footer {
+    background: var(--gray-200);
+    border-top-color: var(--gray-300);
+}
+
+.dark-mode .countdown-timer,
+.dark-mode .location-status {
+    background: var(--gray-200);
+    border-color: var(--gray-300);
+}
+
+.dark-mode .location-status.success {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.dark-mode .location-status.error {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+/* Mobile Responsive - No Horizontal Scroll */
 @media (max-width: 768px) {
+    html, body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
     .attendance-card {
-        margin: 1rem;
+        width: calc(100% - 1rem);
+        margin: 0.5rem;
+        border-radius: var(--radius-lg);
     }
     
     .card-header {
-        padding: 1.5rem 1rem;
+        padding: 1rem;
+    }
+    
+    .card-header h1 {
+        font-size: 1.15rem;
+    }
+    
+    .header-icon {
+        font-size: 2rem;
     }
     
     .card-body {
-        padding: 1rem;
+        padding: 0.875rem;
+    }
+    
+    .input-group {
+        margin-bottom: 0.875rem;
+    }
+    
+    .input-group input,
+    .input-group select {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-submit {
+        padding: 0.65rem;
+        font-size: 0.8rem;
+    }
+    
+    .countdown-timer {
+        padding: 0.5rem;
+        margin: 0 0.5rem 0.5rem 0.5rem;
+    }
+    
+    #countdownDisplay {
+        font-size: 0.9rem;
+    }
+    
+    .location-status {
+        padding: 0.5rem;
+        margin: 0 0 0.5rem 0;
+        font-size: 0.65rem;
+    }
+    
+    .message {
+        padding: 0.625rem;
+        font-size: 0.7rem;
+        margin-top: 0.75rem;
+    }
+    
+    .card-footer {
+        padding: 0.625rem;
+    }
+    
+    .card-footer p {
+        font-size: 0.6rem;
+    }
+}
+
+/* Desktop Enhancements */
+@media (min-width: 769px) {
+    .attendance-card {
+        margin: 2rem auto;
+    }
+    
+    .card-header {
+        padding: 1.75rem;
+    }
+    
+    .card-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn-submit {
+        padding: 0.875rem;
+        font-size: 0.9rem;
     }
 }
