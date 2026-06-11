@@ -12,6 +12,25 @@
 </head>
 <body>
 
+<!-- Header with Dark Mode Toggle -->
+<div class="student-header">
+    <div class="student-header-content">
+        <div class="student-logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Class<span style="color: var(--primary-600);">Track</span></span>
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
 <div class="attendance-card">
     <div class="card-header">
         <div class="header-icon">📋</div>
@@ -29,7 +48,7 @@
     </div>
 
     <div class="location-status" id="locationStatus" style="display: none; margin: 0 1rem 1rem 1rem; padding: 0.5rem; border-radius: 0.5rem; font-size: 0.75rem;">
-    <span id="locationMessage"> Checking location...</span>
+        <span id="locationMessage"> Checking location...</span>
     </div>
     
     <div class="card-body">
