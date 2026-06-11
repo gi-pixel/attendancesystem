@@ -13,7 +13,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-<div id="dashboardContent" style="display: none;"> </div>
+
+    <div id="passwordModal" class="password-modal" style="display: flex;">
+    <div class="password-card">
+        <div class="password-header">
+            <h2>Professor Access</h2>
+            <p>Enter password to access dashboard</p>
+        </div>
+        <div class="password-body">
+            <input type="password" id="professorPassword" placeholder="Enter password" autocomplete="off">
+            <button id="verifyPasswordBtn" class="btn-primary" style="margin-top: 0.5rem;">Verify Access</button>
+            <div id="passwordError" class="password-error"></div>
+        </div>
+    </div>
+</div>
+
+<div id="dashboardContent" style="display: none;">
 <div class="header">
     <div class="header-content">
         <div class="logo">
