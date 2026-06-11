@@ -7,6 +7,68 @@ const uploadResult = document.getElementById('uploadResult');
 const locationToggle = document.getElementById('locationToggle');
 const locationCoords = document.getElementById('locationCoords');
 
+let isVerified = false;
+
+async function checkPassword() {
+    // Check if already authenticated this session
+    if (sessionStorage.getItem('professor_auth') === 'true') {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+        isVerified = true;
+        return;
+    }
+    
+    document.getElementById('passwordModal').style.display = 'flex';
+    document.getElementById('dashboardContent').style.display = 'none';
+}
+
+async function verifyPassword() {
+    const passwordInput = document.getElementById('professorPassword');
+    const errorDiv = document.getElementById('passwordError');
+    const password = passwordInput.value.trim();
+    
+    if (!password) {
+        errorDiv.textContent = 'Please enter password';
+        return;
+    }
+    
+    errorDiv.textContent = 'Verifying...';
+    
+    try {
+        const response = await fetch('/api/get-config');
+        const data = await response.json();
+        
+        if (data.professor_password === password) {
+            sessionStorage.setItem('professor_auth', 'true');
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            errorDiv.textContent = '';
+            passwordInput.value = '';
+            isVerified = true;
+            
+            // Initialize dashboard after successful login
+            if (typeof loadActiveSessions === 'function') loadActiveSessions();
+            if (typeof loadTodayAttendance === 'function') loadTodayAttendance();
+        } else {
+            errorDiv.textContent = 'Incorrect password. Please try again.';
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    } catch (error) {
+        console.error('Password verification error:', error);
+        errorDiv.textContent = 'Error verifying password. Please try again.';
+    }
+}
+
+// Add event listeners
+document.getElementById('verifyPasswordBtn')?.addEventListener('click', verifyPassword);
+document.getElementById('professorPassword')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') verifyPassword();
+});
+
+// Call on page load
+checkPassword();
+
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
         const tabId = tab.dataset.tab;
@@ -23,6 +85,7 @@ const qrResult = document.getElementById('qrResult');
 const courseSelect = document.getElementById('courseSelect');
 const sessionDuration = document.getElementById('sessionDuration');
 let qrcode = null;
+
 
 generateBtn.addEventListener('click', async () => {
     const course = courseSelect.value;
