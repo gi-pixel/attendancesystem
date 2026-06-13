@@ -1,96 +1,163 @@
 /* ==========================================================================
-   1. VARIABLES & THEMING ENGINE
+   MODERN UI WITH DARK MODE - REFACTORED FOR PROFESSOR DASHBOARD
+   Based on provided HTML structure with enhanced glassmorphism & modern aesthetics
    ========================================================================== */
-:root, [data-theme="light"] {
-    /* Main Accent Palette */
+
+/* ==========================================================================
+   1. CSS RESET & GLOBAL
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ==========================================================================
+   2. THEME ENGINE - LIGHT MODE (DEFAULT)
+   ========================================================================== */
+:root,
+[data-theme="light"] {
+    /* ===== PRIMARY GRADIENT & ACCENTS ===== */
+    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     --primary-50: #f0fdf4;
     --primary-500: #2563eb;
     --primary-600: #1d4ed8;
     --primary-700: #1e40af;
-    
-    /* Functional Colors */
-    --danger: #ef4444;
-    --danger-dark: #dc2626;
+    --primary-glow: rgba(37, 99, 235, 0.2);
+    --primary-soft: #eef2ff;
+
+    /* ===== FUNCTIONAL COLORS ===== */
+    --success: #10b981;
+    --success-dark: #059669;
     --success-bg: #dcfce7;
     --success-text: #166534;
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
     --danger-bg: #fee2e2;
     --danger-text: #991b1b;
+    --warning: #f59e0b;
+    --warning-dark: #d97706;
 
-    /* Theme Layout Backgrounds */
+    /* ===== SURFACE & BACKGROUNDS ===== */
     --bg-main: #f8fafc;
-    --bg-surface: #ffffff;
+    --bg-surface: rgba(255, 255, 255, 0.92);
+    --bg-elevated: #ffffff;
     --bg-muted: #f1f5f9;
     --bg-nested: #ffffff;
-    
-    /* Typography Colors */
-    --text-main: #0f172a;
+    --glass-border: rgba(255, 255, 255, 0.5);
+
+    /* ===== TYPOGRAPHY ===== */
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
     --text-muted: #64748b;
+    --text-tertiary: #64748b;
     --text-contrast: #1e293b;
     --text-inverse: #ffffff;
-    
-    /* Borders & Decoratives */
-    --border-light: #f1f5f9;
+
+    /* ===== BORDERS & SHADOWS ===== */
+    --border-light: rgba(203, 213, 225, 0.5);
     --border-main: #e2e8f0;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
-    /* System Tokens */
+    /* ===== BORDER RADIUS ===== */
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
-}
+    --radius-2xl: 1.5rem;
 
-[data-theme="dark"] {
-    /* Main Accent Palette */
-    --primary-50: rgba(37, 99, 235, 0.15);
-    --primary-500: #3b82f6;
-    --primary-600: #2563eb;
-    --primary-700: #1d4ed8;
-    
-    /* Functional Colors */
-    --danger: #f87171;
-    --danger-dark: #ef4444;
-    --success-bg: rgba(34, 197, 94, 0.2);
-    --success-text: #4ade80;
-    --danger-bg: rgba(239, 68, 68, 0.2);
-    --danger-text: #f87171;
+    /* ===== TRANSITIONS ===== */
+    --transition-smooth: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    --transition-fast: all 0.15s ease;
 
-    /* Theme Layout Backgrounds */
-    --bg-main: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-muted: #334155;
-    --bg-nested: #0f172a;
-    
-    /* Typography Colors */
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-contrast: #e2e8f0;
-    --text-inverse: #0f172a;
-    
-    /* Borders & Decoratives */
-    --border-light: #334155;
-    --border-main: #475569;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    /* ===== FONTS ===== */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* ==========================================================================
-   2. GLOBAL INITIALIZATION
+   3. THEME ENGINE - DARK MODE
    ========================================================================== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+[data-theme="dark"] {
+    /* ===== PRIMARY GRADIENT & ACCENTS ===== */
+    --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+    --primary-50: rgba(37, 99, 235, 0.15);
+    --primary-500: #3b82f6;
+    --primary-600: #2563eb;
+    --primary-700: #1e40af;
+    --primary-glow: rgba(59, 130, 246, 0.25);
+    --primary-soft: rgba(59, 130, 246, 0.1);
+
+    /* ===== FUNCTIONAL COLORS ===== */
+    --success: #10b981;
+    --success-dark: #059669;
+    --success-bg: rgba(34, 197, 94, 0.2);
+    --success-text: #4ade80;
+    --danger: #f87171;
+    --danger-dark: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.2);
+    --danger-text: #f87171;
+    --warning: #f59e0b;
+    --warning-dark: #d97706;
+
+    /* ===== SURFACE & BACKGROUNDS ===== */
+    --bg-main: #0f172a;
+    --bg-surface: rgba(30, 35, 48, 0.85);
+    --bg-elevated: #1e293b;
+    --bg-muted: #334155;
+    --bg-nested: #0f172a;
+    --glass-border: rgba(71, 85, 105, 0.6);
+
+    /* ===== TYPOGRAPHY ===== */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-tertiary: #94a3b8;
+    --text-contrast: #e2e8f0;
+    --text-inverse: #0f172a;
+
+    /* ===== BORDERS & SHADOWS ===== */
+    --border-light: rgba(51, 65, 85, 0.6);
+    --border-main: #475569;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* ==========================================================================
+   4. GLOBAL BASE STYLES
+   ========================================================================== */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    font-family: var(--font-sans);
+    background: var(--bg-main);
+    color: var(--text-primary);
+    transition: var(--transition-smooth);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
 }
 
+/* ==========================================================================
+   5. GLASS MORPHISM UTILITY
+   ========================================================================== */
+.glass-surface,
+.glass-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+
+/* ==========================================================================
+   6. CONTAINER & LAYOUT
+   ========================================================================== */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -98,15 +165,18 @@ body {
 }
 
 /* ==========================================================================
-   3. HEADER & ACCESS NAVIGATION
+   7. HEADER & ACCESS NAVIGATION
    ========================================================================== */
 .dashboard-header {
     background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-main);
     position: sticky;
     top: 0;
     z-index: 100;
     padding: 0.75rem 1rem;
+    transition: var(--transition-smooth);
 }
 
 .dashboard-header-content {
@@ -123,39 +193,56 @@ body {
     gap: 0.5rem;
     font-weight: 700;
     font-size: 1.1rem;
-    color: var(--text-contrast);
+    background: var(--primary-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
 }
 
 .dashboard-logo svg {
     width: 28px;
     height: 28px;
+    stroke: var(--primary-600);
     color: var(--primary-600);
 }
 
-/* Theme Toggle Button Style */
+/* ==========================================================================
+   8. THEME TOGGLE BUTTON
+   ========================================================================== */
 .theme-toggle {
     background: transparent;
     border: 1px solid var(--border-main);
-    color: var(--text-main);
-    padding: 0.5rem;
     border-radius: var(--radius-md);
     cursor: pointer;
+    padding: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s ease;
+    width: 38px;
+    height: 38px;
+    transition: var(--transition-fast);
 }
 
 .theme-toggle:hover {
-    background-color: var(--bg-muted);
+    background: var(--bg-muted);
+    border-color: var(--primary-300);
+    transform: scale(0.96);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
 }
 
 .theme-toggle svg {
     width: 18px;
     height: 18px;
+    stroke: var(--text-primary);
+    fill: none;
 }
 
-/* Logout Button */
+/* ==========================================================================
+   9. LOGOUT BUTTON
+   ========================================================================== */
 .logout-btn {
     background: var(--danger);
     color: var(--text-inverse);
@@ -165,121 +252,103 @@ body {
     font-weight: 500;
     font-size: 0.8rem;
     cursor: pointer;
-    transition: background-color 0.1s ease;
+    transition: var(--transition-fast);
 }
 
 .logout-btn:hover {
     background: var(--danger-dark);
+    transform: translateY(-1px);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
 }
 
 /* ==========================================================================
-   4. MODALS & ACCESS MANAGEMENT
+   10. BUTTONS
    ========================================================================== */
-
-/* Fullscreen background overlay */
-.password-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
 }
 
-/* Card frame containment */
-.password-card {
-    background: var(--bg-surface);
-    border-radius: var(--radius-xl);
-    max-width: 400px;
-    width: 90%;
-    overflow: hidden;
-    box-shadow: var(--shadow-xl);
-    }
-
-/* Header decorative layout */
-.password-header {
-    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-    padding: 1.5rem;
-    text-align: center;
-    color: #ffffff; /* Static white for text contrast against the primary gradient */
+.btn-primary:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
-.password-header h2 {
-    font-size: 1.25rem;
-    margin-bottom: 0.25rem;
-    font-weight: 700;
+.btn-primary:active {
+    transform: translateY(0);
 }
 
-.password-header p {
-    font-size: 0.8rem;
-    opacity: 0.9;
+.btn-secondary {
+    background: var(--bg-muted);
+    color: var(--text-primary);
+    border: 1px solid var(--border-main);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-fast);
 }
 
-/* Content block container */
-.password-body {
-    padding: 1.5rem;
-    background: var(--bg-surface);
-    display: flex;
-    flex-direction: column;
+.btn-secondary:hover {
+    background: var(--bg-elevated);
+    border-color: var(--primary-500);
 }
 
-/* Text & Credential Input fields */
-#professorPassword {
+/* ==========================================================================
+   11. FORM ELEMENTS
+   ========================================================================== */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 1.5px solid var(--border-main);
     border-radius: var(--radius-md);
-    font-size: 1rem;
-    background-color: var(--bg-nested);
-    color: var(--text-main);
-    transition: border-color 0.1s ease, box-shadow 0.1s ease;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    transition: var(--transition-fast);
 }
 
-#professorPassword:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: var(--primary-500);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
-/* Dedicated Action Button Customization */
-#verifyPasswordBtn {
-    width: 100%;
-    min-width: 100% !important; /* Enforces strict layout within the card box */
-    margin-top: 1rem;
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-    color: #ffffff;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.1s ease, filter 0.1s ease;
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
 }
 
-#verifyPasswordBtn:hover {
-    filter: brightness(1.1);
-}
-
-#verifyPasswordBtn:active {
-    transform: scale(0.98);
-}
-
-/* Validation System Messages */
-.password-error {
-    color: var(--danger);
-    font-size: 0.75rem;
-    margin-top: 0.75rem;
-    text-align: center;
-    font-weight: 500;
-}
 /* ==========================================================================
-   5. INTERFACE PANELS & NAVIGATION
+   12. TABS COMPONENT
    ========================================================================== */
 .tabs {
     display: flex;
@@ -287,6 +356,7 @@ body {
     gap: 0.5rem;
     margin-bottom: 1.5rem;
     background: var(--bg-surface);
+    backdrop-filter: blur(8px);
     padding: 0.5rem;
     border-radius: var(--radius-xl);
     border: 1px solid var(--border-light);
@@ -303,11 +373,12 @@ body {
     font-size: 0.8rem;
     color: var(--text-muted);
     cursor: pointer;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    transition: var(--transition-smooth);
 }
 
 .tab-btn:hover {
-    color: var(--text-contrast);
+    color: var(--text-primary);
+    background: var(--bg-muted);
 }
 
 .tab-btn:active {
@@ -315,28 +386,37 @@ body {
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    background: var(--primary-gradient);
     color: white;
+    box-shadow: 0 4px 8px var(--primary-glow);
 }
 
-/* Pane Display Architecture */
+/* Tab panes */
 .tab-pane {
     display: none;
+    animation: fadeIn 0.3s ease;
 }
+
 .tab-pane.active {
     display: block;
 }
 
 /* ==========================================================================
-   6. CARDS & LAYOUT BOXES
+   13. CARDS & LAYOUT BOXES
    ========================================================================== */
 .card {
-    background: var(--bg-surface);
+    background: var(--bg-elevated);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-sm);
     margin-bottom: 1.25rem;
     overflow: hidden;
     border: 1px solid var(--border-light);
+    transition: var(--transition-smooth);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .card-header {
@@ -359,130 +439,9 @@ body {
 .card-body {
     padding: 1.25rem;
 }
-/* ==========================================================================
-   7. INTERFACE MODIFIERS & UTILITIES
-   ========================================================================== */
-.empty-state {
-    text-align: center;
-    padding: 2.5rem 1rem;
-    color: var(--text-muted);
-}
-
-.copy-success {
-    color: var(--success-text);
-    background-color: var(--success-bg);
-    padding: 0.5rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    margin-top: 0.5rem;
-    text-align: center;
-}
-
-code {
-    background: var(--bg-muted);
-    color: var(--text-contrast);
-    padding: 0.2rem 0.4rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.7rem;
-    font-family: monospace;
-    border: 1px solid var(--border-light);
-}
 
 /* ==========================================================================
-   8. QR ENGINES & ACTIONS
-   ========================================================================== */
-.qr-container {
-    text-align: center;
-    margin-top: 1rem;
-    padding: 1.5rem;
-    background: var(--bg-muted);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-main);
-}
-
-#qrcode {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-    background: #ffffff; /* QR codes always require a crisp white background to scan safely */
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    width: fit-content;
-    margin: 0 auto 1rem auto;
-    box-shadow: var(--shadow-sm);
-}
-
-.qr-info {
-    background: var(--bg-surface);
-    padding: 0.875rem;
-    border-radius: var(--radius-md);
-    margin: 1rem 0;
-    text-align: left;
-    border: 1px solid var(--border-main);
-}
-
-.qr-info p {
-    font-size: 0.8rem;
-    margin-bottom: 0.375rem;
-    word-break: break-all;
-    color: var(--text-main);
-}
-
-/* ==========================================================================
-   9. TABLES & DATA STRUCTURES
-   ========================================================================== */
-.table-wrapper {
-    overflow-x: auto;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-main);
-    background: var(--bg-surface);
-}
-
-.attendance-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-    background: var(--bg-surface);
-}
-
-.attendance-table th,
-.attendance-table td {
-    padding: 0.875rem 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text-main);
-}
-
-.attendance-table th {
-    background: var(--bg-muted);
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.attendance-table tr:hover {
-    background: var(--bg-muted);
-}
-
-.btn-delete-session {
-    background: var(--danger);
-    color: white;
-    border: none;
-    padding: 0.35rem 0.875rem;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 0.7rem;
-    transition: background-color 0.1s ease;
-}
-
-.btn-delete-session:hover {
-    background: var(--danger-dark);
-}
-
-/* ==========================================================================
-   10. METRICS & ANALYTICS PANELS
+   14. STATS GRID & METRICS
    ========================================================================== */
 .stats-grid {
     display: grid;
@@ -497,12 +456,20 @@ code {
     border-radius: var(--radius-lg);
     text-align: center;
     border: 1px solid var(--border-main);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
 }
 
 .stat-number {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--primary-500);
+    background: var(--primary-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
     line-height: 1.2;
 }
 
@@ -514,6 +481,7 @@ code {
     letter-spacing: 0.5px;
 }
 
+/* Analytics summary grid */
 .analytics-summary {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -558,18 +526,191 @@ code {
     letter-spacing: 0.5px;
 }
 
-.chart-container {
-    max-width: 100%;
+/* ==========================================================================
+   15. TABLES & DATA STRUCTURES
+   ========================================================================== */
+.table-wrapper,
+.sessions-table-wrapper {
     overflow-x: auto;
-    padding: 0.5rem 0;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-main);
+    background: var(--bg-elevated);
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background: var(--bg-elevated);
+}
+
+.attendance-table th,
+.attendance-table td {
+    padding: 0.875rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
+}
+
+.attendance-table th {
+    background: var(--bg-muted);
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.attendance-table tr:hover {
+    background: var(--bg-muted);
+}
+
+.btn-delete-session {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 0.35rem 0.875rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: var(--transition-fast);
+}
+
+.btn-delete-session:hover {
+    background: var(--danger-dark);
+    transform: scale(0.98);
 }
 
 /* ==========================================================================
-   11. DATA LOADING & MANIFEST FILE UPLOADS
+   16. QR CODE COMPONENT
+   ========================================================================== */
+.qr-container {
+    text-align: center;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-muted);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-main);
+}
+
+#qrcode {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    width: fit-content;
+    margin: 0 auto 1rem auto;
+    box-shadow: var(--shadow-sm);
+}
+
+.qr-info {
+    background: var(--bg-surface);
+    padding: 0.875rem;
+    border-radius: var(--radius-md);
+    margin: 1rem 0;
+    text-align: left;
+    border: 1px solid var(--border-main);
+}
+
+.qr-info p {
+    font-size: 0.8rem;
+    margin-bottom: 0.375rem;
+    word-break: break-all;
+    color: var(--text-primary);
+}
+
+/* ==========================================================================
+   17. MODAL & ACCESS MANAGEMENT
+   ========================================================================== */
+.password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.password-card {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl);
+    max-width: 400px;
+    width: 90%;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    animation: fadeIn 0.3s ease;
+}
+
+.password-header {
+    background: var(--primary-gradient);
+    padding: 1.5rem;
+    text-align: center;
+    color: #ffffff;
+}
+
+.password-header h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+}
+
+.password-header p {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.password-body {
+    padding: 1.5rem;
+    background: var(--bg-elevated);
+    display: flex;
+    flex-direction: column;
+}
+
+#professorPassword {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border-main);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    background-color: var(--bg-nested);
+    color: var(--text-primary);
+    transition: var(--transition-fast);
+}
+
+#professorPassword:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+#verifyPasswordBtn {
+    width: 100%;
+    min-width: 100% !important;
+    margin-top: 1rem;
+    background: var(--primary-gradient);
+}
+
+.password-error {
+    color: var(--danger);
+    font-size: 0.75rem;
+    margin-top: 0.75rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   18. UPLOAD & CSV COMPONENTS
    ========================================================================== */
 .csv-format {
     background: var(--bg-muted);
-    color: var(--text-main);
+    color: var(--text-primary);
     padding: 0.875rem;
     border-radius: var(--radius-md);
     margin: 0.75rem 0;
@@ -599,6 +740,35 @@ code {
     display: block;
 }
 
+/* ==========================================================================
+   19. UTILITY CLASSES
+   ========================================================================== */
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-muted);
+}
+
+.copy-success {
+    color: var(--success-text);
+    background-color: var(--success-bg);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+code {
+    background: var(--bg-muted);
+    color: var(--text-contrast);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-family: monospace;
+    border: 1px solid var(--border-light);
+}
+
 .loading-spinner {
     display: inline-block;
     width: 18px;
@@ -611,123 +781,221 @@ code {
     vertical-align: middle;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.text-center {
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
 }
 
 /* ==========================================================================
-   12. MOBILE ADAPTATIONS & RESPONSIVE VIEWPORTS
+   20. CHART CONTAINER
+   ========================================================================== */
+.chart-container {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+}
+
+/* ==========================================================================
+   21. SCROLLBAR STYLING
+   ========================================================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-muted);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--text-tertiary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* ==========================================================================
+   22. SELECTION STYLING
+   ========================================================================== */
+::selection {
+    background: var(--primary-500);
+    color: white;
+}
+
+/* ==========================================================================
+   23. ANIMATIONS
+   ========================================================================== */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   24. MOBILE ADAPTATIONS & RESPONSIVE VIEWPORTS
    ========================================================================== */
 @media (max-width: 768px) {
     .dashboard-header {
         padding: 0.5rem 0.75rem;
     }
-    
+
     .dashboard-logo {
         font-size: 1rem;
     }
-    
+
     .dashboard-logo svg {
         width: 24px;
         height: 24px;
     }
-    
+
     .logout-btn {
         padding: 0.4rem 0.75rem;
         font-size: 0.75rem;
     }
-    
+
+    .theme-toggle {
+        width: 34px;
+        height: 34px;
+        padding: 0.4rem;
+    }
+
+    .theme-toggle svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
     .tabs {
         gap: 0.375rem;
         padding: 0.375rem;
     }
-    
+
     .tab-btn {
         padding: 0.5rem 0.375rem;
         font-size: 0.7rem;
     }
-    
+
     .card-header {
         padding: 0.875rem 1rem;
     }
-    
+
     .card-header h2 {
         font-size: 1rem;
     }
-    
+
     .card-body {
         padding: 1rem;
     }
-    
+
     .btn-primary {
-        padding: 0.75rem 0.875rem;
+        padding: 0.6rem 1rem;
         font-size: 0.8rem;
     }
-    
+
     .analytics-summary {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
     }
-    
+
     .summary-card .value {
         font-size: 1.25rem;
     }
-    
+
     .stats-grid {
         gap: 0.75rem;
     }
-    
+
     .stat-number {
         font-size: 1.25rem;
     }
-    
+
     .attendance-table th,
     .attendance-table td {
         padding: 0.625rem 0.5rem;
         font-size: 0.7rem;
     }
-    
+
     .qr-container {
         padding: 1rem;
     }
-    
-    #qrcode canvas, #qrcode img {
+
+    #qrcode canvas,
+    #qrcode img {
         width: 160px !important;
         height: 160px !important;
     }
 }
 
 /* ==========================================================================
-   13. WIDESCREEN & DESKTOP STABILIZATION
+   25. WIDESCREEN & DESKTOP STABILIZATION
    ========================================================================== */
 @media (min-width: 769px) {
     .container {
         padding: 1.5rem;
     }
-    
+
     .tabs {
         gap: 0.75rem;
     }
-    
+
     .tab-btn {
         font-size: 0.85rem;
         padding: 0.75rem 1rem;
     }
-    
+
     .card-header {
         padding: 1.25rem 1.5rem;
     }
-    
+
     .card-header h2 {
         font-size: 1.25rem;
     }
-    
+
     .card-body {
         padding: 1.5rem;
     }
-    
+
     .btn-primary {
         width: auto;
         min-width: 200px;
+    }
+}
+
+/* ==========================================================================
+   26. PRINT STYLES
+   ========================================================================== */
+@media print {
+    .no-print,
+    .theme-toggle,
+    .logout-btn,
+    .tabs {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        break-inside: avoid;
     }
 }
