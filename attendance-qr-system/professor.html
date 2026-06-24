@@ -61,6 +61,7 @@
         <button class="tab-btn" data-tab="history">History</button>
         <button class="tab-btn" data-tab="students">Students</button>
         <button class="tab-btn" data-tab="analytics">Analytics</button>
+        <button class="tab-btn" data-tab="marks">Marks</button>
     </div>
 
     <!-- Generate QR Tab -->
@@ -133,39 +134,39 @@
 
     </div>
 
-        <!-- Active Sessions Tab -->
-        <div class="tab-pane" id="tab-sessions">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Active Sessions</h2>
-                    <p>View and manage currently active QR sessions</p>
+    <!-- Active Sessions Tab -->
+    <div class="tab-pane" id="tab-sessions">
+        <div class="card">
+            <div class="card-header">
+                <h2>Active Sessions</h2>
+                <p>View and manage currently active QR sessions</p>
+            </div>
+            <div class="card-body">
+                <button class="btn-primary" id="loadSessionsBtn" style="margin-bottom: 1rem;">Load Active Sessions</button>
+                
+                <div id="sessionsLoading" style="display: none; text-align: center; padding: 1rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading sessions...</p>
                 </div>
-                <div class="card-body">
-                    <button class="btn-primary" id="loadSessionsBtn" style="margin-bottom: 1rem;">Load Active Sessions</button>
-                    
-                    <div id="sessionsLoading" style="display: none; text-align: center; padding: 1rem;">
-                        <div class="loading-spinner"></div>
-                        <p>Loading sessions...</p>
-                    </div>
-                    
-                    <div class="sessions-table-wrapper" id="sessionsTableWrapper" style="display: none;">
-                        <table class="attendance-table" id="sessionsTable">
-                            <thead>
-                                <tr>
-                                    <th>Course</th>
-                                    <th>Session ID</th>
-                                    <th>Expires At</th>
-                                    <th>Time Left</th>
-                                    <th>Location</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sessionsTableBody"></tbody>
-                        </table>
-                    </div>
+                
+                <div class="sessions-table-wrapper" id="sessionsTableWrapper" style="display: none;">
+                    <table class="attendance-table" id="sessionsTable">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Session ID</th>
+                                <th>Expires At</th>
+                                <th>Time Left</th>
+                                <th>Location</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionsTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
+    </div>
 
     <!-- Today's Attendance Tab -->
     <div class="tab-pane" id="tab-attendance">
@@ -212,128 +213,176 @@
         </div>
     </div>
 
-            <!-- History Tab -->
-            <div class="tab-pane" id="tab-history">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Course History</h2>
-                        <p>View attendance by course</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Select Course</label>
-                            <select id="historyCourseSelect">
-                                <option value="CCS304">Telecommunication Networks</option>
-                                <option value="CIIT302">Advanced Intelligent Networks</option>
-                                <option value="CIIT306">Routing and Switching Technologies</option>
-                                <option value="CIIT332">Software Defined Networks</option>
-                                <option value="CIIT352">Windows Server Administration</option>
-                                <option value="SCOT322">Sociology of Technology</option>
-                            </select>
-                        </div>
-                        <button class="btn-primary" id="loadHistoryBtn">Load History</button>
-                        <div id="historyStats" class="stats-grid" style="margin-top: 1rem; display: none;"></div>
-                        <div class="table-wrapper" style="margin-top: 1rem;">
-                            <table class="attendance-table" id="historyTable">
-                                <thead><tr><th>Date</th><th>Name</th><th>Index</th><th>Session</th></tr></thead>
-                                <tbody id="historyTableBody"><tr><td colspan="4" class="empty-state">Select a course to view history</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
+    <!-- History Tab -->
+    <div class="tab-pane" id="tab-history">
+        <div class="card">
+            <div class="card-header">
+                <h2>Course History</h2>
+                <p>View attendance by course</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Select Course</label>
+                    <select id="historyCourseSelect">
+                        <option value="CCS304">Telecommunication Networks</option>
+                        <option value="CIIT302">Advanced Intelligent Networks</option>
+                        <option value="CIIT306">Routing and Switching Technologies</option>
+                        <option value="CIIT332">Software Defined Networks</option>
+                        <option value="CIIT352">Windows Server Administration</option>
+                        <option value="SCOT322">Sociology of Technology</option>
+                    </select>
                 </div>
-            </div>
-
-        <!-- Students Tab -->
-<div class="tab-pane" id="tab-students">
-    <div class="card">
-        <div class="card-header">
-            <h2>Class List Management</h2>
-            <p>Upload student index numbers and names</p>
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <label>CSV Format</label>
-                <div class="csv-format">
-                    <code>indexNumber,name</code><br>
-                    <code>20240001,Emma Thompson</code><br>
-                    <code>20240002,John Doe</code>
+                <button class="btn-primary" id="loadHistoryBtn">Load History</button>
+                <div id="historyStats" class="stats-grid" style="margin-top: 1rem; display: none;"></div>
+                <div class="table-wrapper" style="margin-top: 1rem;">
+                    <table class="attendance-table" id="historyTable">
+                        <thead><tr><th>Date</th><th>Name</th><th>Index</th><th>Session</th></tr></thead>
+                        <tbody id="historyTableBody"><tr><td colspan="4" class="empty-state">Select a course to view history</td></tr></tbody>
+                    </table>
                 </div>
-                <small>Only index number is required for verification</small>
-            </div>
-            
-            <div class="form-group">
-                <label>Select CSV File</label>
-                <input type="file" id="classListFile" accept=".csv,.xlsx,.xls">
-            </div>
-            
-            <button class="btn-primary" id="uploadClassListBtn">Upload Class List</button>            
-            <div id="uploadResult" style="display: none; margin-top: 1rem;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Analytics Tab -->
-<div class="tab-pane" id="tab-analytics">
-    <div class="card">
-        <div class="card-header">
-            <h2>Attendance Analytics</h2>
-            <p>View insights and statistics for your courses</p>
-        </div>
-        <div class="card-body">
-            <!-- Course Selector -->
-            <div class="form-group">
-                <label>Select Course</label>
-                <select id="analyticsCourseSelect">
-                    <option value="CCS304">Telecommunication Networks</option>
-                    <option value="CIIT302">Advanced Intelligent Networks</option>
-                    <option value="CIIT306">Routing and Switching Technologies</option>
-                    <option value="CIIT332">Software Defined Networks</option>
-                    <option value="CIIT352">Windows Server Administration</option>
-                    <option value="SCOT322">Sociology of Technology</option>
-                </select>
-            </div>
-            
-            <button class="btn-primary" id="loadAnalyticsBtn">Load Analytics</button>
-            
-            <!-- Loading Indicator -->
-            <div id="analyticsLoading" style="display: none; text-align: center; padding: 2rem;">
-                <div class="loading-spinner"></div>
-                <p>Loading analytics data...</p>
-            </div>
-            
-            <!-- Analytics Results -->
-            <div id="analyticsResults" style="display: none;">
-                <!-- Summary Cards -->
-                <div class="analytics-summary" id="analyticsSummary"></div>
-                
-                <!-- Weekly Trend Chart -->
-                <div class="analytics-card">
-                    <h3>Weekly Attendance Trend</h3>
-                    <div class="chart-container">
-                        <canvas id="weeklyChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Student List -->
-                <div class="analytics-card">
-                    <h3>Student Attendance Breakdown</h3>
-                    <div class="table-wrapper">
-                        <table class="attendance-table" id="studentTable">
-                            <thead>
-                                <tr><th>Name</th><th>Index</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr>
-                            </thead>
-                            <tbody id="studentTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Export Button -->
-                <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">Export to CSV</button>
-                <button class="btn-primary" id="exportAnalyticsPdfBtn" style="margin-top: 1rem; background: linear-gradient(135deg, #dc2626, #b91c1c); margin-left: 0.5rem;">Export to PDF</button>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Students Tab -->
+    <div class="tab-pane" id="tab-students">
+    <div class="card">
+    <div class="card-header">
+        <h2>Class List Management</h2>
+        <p>Upload student index numbers and names</p>
+    </div>
+    <div class="card-body">
+        <div class="form-group">
+            <label>CSV Format</label>
+            <div class="csv-format">
+                <code>indexNumber,name</code><br>
+                <code>20240001,Emma Thompson</code><br>
+                <code>20240002,John Doe</code>
+            </div>
+            <small>Only index number is required for verification</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Select CSV File</label>
+            <input type="file" id="classListFile" accept=".csv,.xlsx,.xls">
+        </div>
+        
+        <button class="btn-primary" id="uploadClassListBtn">Upload Class List</button>            
+        <div id="uploadResult" style="display: none; margin-top: 1rem;"></div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div class="tab-pane" id="tab-analytics">
+    <div class="card">
+    <div class="card-header">
+        <h2>Attendance Analytics</h2>
+        <p>View insights and statistics for your courses</p>
+    </div>
+    <div class="card-body">
+        <!-- Course Selector -->
+        <div class="form-group">
+            <label>Select Course</label>
+            <select id="analyticsCourseSelect">
+                <option value="CCS304">Telecommunication Networks</option>
+                <option value="CIIT302">Advanced Intelligent Networks</option>
+                <option value="CIIT306">Routing and Switching Technologies</option>
+                <option value="CIIT332">Software Defined Networks</option>
+                <option value="CIIT352">Windows Server Administration</option>
+                <option value="SCOT322">Sociology of Technology</option>
+            </select>
+        </div>
+        
+        <button class="btn-primary" id="loadAnalyticsBtn">Load Analytics</button>
+        
+        <!-- Loading Indicator -->
+        <div id="analyticsLoading" style="display: none; text-align: center; padding: 2rem;">
+            <div class="loading-spinner"></div>
+            <p>Loading analytics data...</p>
+        </div>
+        
+        <!-- Analytics Results -->
+        <div id="analyticsResults" style="display: none;">
+            <!-- Summary Cards -->
+            <div class="analytics-summary" id="analyticsSummary"></div>
+            
+            <!-- Weekly Trend Chart -->
+            <div class="analytics-card">
+                <h3>Weekly Attendance Trend</h3>
+                <div class="chart-container">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Student List -->
+            <div class="analytics-card">
+                <h3>Student Attendance Breakdown</h3>
+                <div class="table-wrapper">
+                    <table class="attendance-table" id="studentTable">
+                        <thead>
+                            <tr><th>Name</th><th>Index</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="studentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Export Button -->
+            <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">Export to CSV</button>
+            <button class="btn-primary" id="exportAnalyticsPdfBtn" style="margin-top: 1rem; background: linear-gradient(135deg, #dc2626, #b91c1c); margin-left: 0.5rem;">Export to PDF</button>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Marks Management Tab -->
+    <div class="tab-pane" id="tab-marks">
+    <div class="card">
+    <div class="card-header">
+        <h2>Marks Management</h2>
+        <p>Enter and manage student marks for each course</p>
+    </div>
+    <div class="card-body">
+        <div class="form-group">
+            <label>Select Course</label>
+            <select id="marksCourseSelect">
+                <option value="CCS304">Telecommunication Networks</option>
+                <option value="CIIT302">Advanced Intelligent Networks</option>
+                <option value="CIIT306">Routing and Switching Technologies</option>
+                <option value="CIIT332">Software Defined Networks</option>
+                <option value="CIIT352">Windows Server Administration</option>
+                <option value="SCOT322">Sociology of Technology</option>
+            </select>
+        </div>
+        
+        <button class="btn-primary" id="loadMarksBtn">Load Students</button>
+        
+        <div id="marksLoading" style="display: none; text-align: center; padding: 2rem;">
+            <div class="loading-spinner"></div>
+            <p>Loading marks data...</p>
+        </div>
+        
+        <div id="marksTableWrapper" style="display: none; margin-top: 1rem;">
+            <div class="table-wrapper">
+                <table class="attendance-table" id="marksTable">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 150px;">Name</th>
+                            <th style="min-width: 120px;">Index Number</th>
+                            <th style="min-width: 100px;">Midsem</th>
+                            <th style="min-width: 120px;">Class Assessment</th>
+                            <th style="min-width: 100px;">Exam</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marksTableBody"></tbody>
+                </table>
+            </div>
+            <div id="marksStatus" style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);"></div>
+        </div>
+    </div>
+    </div>
+    </div>
 
 </div>
 
