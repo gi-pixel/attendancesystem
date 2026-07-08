@@ -268,7 +268,7 @@ async function submitAttendance() {
         return;
     }
     
-    // Location verification
+    // Location verification (if required)
     if (locationRequired && classroomLocation) {
         const locationStatus = document.getElementById('locationMessage');
         if (locationStatus) {
@@ -286,29 +286,29 @@ async function submitAttendance() {
                 if (locationStatus) {
                     locationStatus.innerHTML = `❌ You are ${Math.round(distance)} meters away. Must be within 30 meters of classroom.`;
                 }
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Attendance';
                 return;
             }
             
             if (locationStatus) {
                 locationStatus.innerHTML = `✅ Location verified (${Math.round(distance)}m from classroom)`;
             }
+            // Save user location for the API
+            userLocation = location;
         } catch (error) {
             if (locationStatus) {
                 locationStatus.innerHTML = `❌ ${error.message}`;
             }
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit Attendance';
             return;
         }
     }
     
+    // Disable button and show loading
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
     showMessage(messageDiv, 'Recording attendance...', 'info');
     
     try {
+        // Now we just call mark-attendance – it will verify the student internally
         const response = await fetch('/api/mark-attendance', {
             method: 'POST',
             headers: {
@@ -333,6 +333,7 @@ async function submitAttendance() {
             studentIndex.value = '';
             clearFieldErrors();
         } else {
+            // The API now returns a clear message (e.g., "You are not a registered student...")
             showMessage(messageDiv, data.message || 'Failed to record attendance', 'error');
         }
     } catch (error) {
@@ -343,7 +344,6 @@ async function submitAttendance() {
         submitBtn.textContent = 'Submit Attendance';
     }
 }
-
 // ========== EVENT LISTENERS ==========
 
 if (submitBtn) {
