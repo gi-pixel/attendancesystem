@@ -58,7 +58,6 @@
         <button class="tab-btn active" data-tab="generate">Generate QR</button>
         <button class="tab-btn" data-tab="sessions">Active</button>
         <button class="tab-btn" data-tab="attendance">Today</button>
-        <button class="tab-btn" data-tab="history">History</button>
         <button class="tab-btn" data-tab="students">Students</button>
         <button class="tab-btn" data-tab="analytics">Analytics</button>
         <button class="tab-btn" data-tab="assignments">Assignments</button>
@@ -207,37 +206,6 @@
                             <tr><th>Time</th><th>Course</th><th>Name</th><th>Index</th></tr>
                         </thead>
                         <tbody id="attendanceTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- History Tab -->
-    <div class="tab-pane" id="tab-history">
-        <div class="card">
-            <div class="card-header">
-                <h2>Course History</h2>
-                <p>View attendance by course</p>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label>Select Course</label>
-                    <select id="historyCourseSelect">
-                        <option value="CCS304">Telecommunication Networks</option>
-                        <option value="CIIT302">Advanced Intelligent Networks</option>
-                        <option value="CIIT306">Routing and Switching Technologies</option>
-                        <option value="CIIT332">Software Defined Networks</option>
-                        <option value="CIIT352">Windows Server Administration</option>
-                        <option value="SCOT322">Sociology of Technology</option>
-                    </select>
-                </div>
-                <button class="btn-primary" id="loadHistoryBtn">Load History</button>
-                <div id="historyStats" class="stats-grid" style="margin-top: 1rem; display: none;"></div>
-                <div class="table-wrapper" style="margin-top: 1rem;">
-                    <table class="attendance-table" id="historyTable">
-                        <thead><tr><th>Date</th><th>Name</th><th>Index</th><th>Session</th></tr></thead>
-                        <tbody id="historyTableBody"><tr><td colspan="4" class="empty-state">Select a course to view history</td></tr></tbody>
                     </table>
                 </div>
             </div>
