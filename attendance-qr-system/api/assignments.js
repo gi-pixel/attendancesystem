@@ -1,155 +1,150 @@
-const jwt = require('jsonwebtoken');
+// ========== UTILITY: escapeHtml ==========
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 
-module.exports = async (req, res) => {
-    if (req.method === 'GET') {
-        return handleGet(req, res);
-    } else if (req.method === 'POST') {
-        return handlePost(req, res);
-    } else if (req.method === 'DELETE') {
-        return handleDelete(req, res);
-    } else {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-};
+// ========== STUDENT ASSIGNMENTS PAGE ==========
 
-// GET: Fetch assignments (optional course filter, type filter)
-async function handleGet(req, res) {
-    const { course, type } = req.query;
+let studentAssignments = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadStudentAssignments();
+    document.getElementById('studentAssignFilter')?.addEventListener('change', loadStudentAssignments);
+});
+
+async function loadStudentAssignments() {
+    const course = document.getElementById('studentAssignFilter').value;
+    const container = document.getElementById('studentAssignmentsContainer');
+    
+    container.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="loading-spinner" style="margin: 0 auto; display: block;"></div><p style="color: var(--text-muted); margin-top: 0.5rem;">Loading...</p></div>';
+
     try {
-        const token = await getAccessToken();
-        const rows = await getSheetData(token, process.env.SPREADSHEET_ID, 'assignments');
-        // Skip header row
-        const assignments = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            course: row[1] || '',
-            title: row[2] || '',
-            description: row[3] || '',
-            dueDate: row[4] || '',
-            postedDate: row[5] || '',
-            status: row[6] || 'pending',
-            type: row[7] || 'assignment'
-        }));
-        // Filter
-        let filtered = assignments;
-        if (course) {
-            filtered = filtered.filter(a => a.course === course);
+        let url = '/api/assignments';
+        const params = new URLSearchParams();
+        if (course) params.append('course', course);
+        if (params.toString()) url += '?' + params.toString();
+
+        console.log('Fetching:', url); // DEBUG
+
+        const response = await fetch(url);
+        console.log('Response status:', response.status); // DEBUG
+
+        const data = await response.json();
+        console.log('Data received:', data); // DEBUG
+
+        if (!data.success) throw new Error(data.error || 'Failed to load');
+
+        studentAssignments = data.assignments || [];
+        console.log('Assignments count:', studentAssignments.length); // DEBUG
+
+        if (studentAssignments.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>📭 No assignments or updates available.</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.25rem;">Check back later for new posts from your lecturers.</p>
+                </div>
+            `;
+            return;
         }
-        if (type) {
-            filtered = filtered.filter(a => a.type === type);
-        }
-        // Sort by dueDate (newest first, but handle nulls)
-        filtered.sort((a, b) => {
-            if (!a.dueDate) return 1;
-            if (!b.dueDate) return -1;
-            return new Date(a.dueDate) - new Date(b.dueDate);
+
+        // Render as cards
+        container.innerHTML = studentAssignments.map(assign => {
+            const statusHtml = getStudentStatus(assign);
+            const dueDisplay = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            }) : '—';
+            const typeIcon = assign.type === 'announcement' ? '📢' : '📝';
+            const typeLabel = assign.type === 'announcement' ? 'Announcement' : 'Assignment';
+            
+            return `
+                <div class="assignment-card" data-id="${assign.id}">
+                    <div class="card-title">
+                        <strong>${escapeHtml(assign.title)}</strong>
+                        <span class="type-icon">${typeIcon} ${typeLabel}</span>
+                    </div>
+                    <div class="card-meta">
+                        <span>📅 ${dueDisplay}</span>
+                        <span>${statusHtml}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Add click event to each card to show modal
+        document.querySelectorAll('.assignment-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const assign = studentAssignments.find(a => a.id === id);
+                if (assign) openAssignmentModal(assign);
+            });
         });
-        res.status(200).json({ success: true, assignments: filtered });
+
     } catch (error) {
-        console.error('Error fetching assignments:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Error loading student assignments:', error);
+        container.innerHTML = `
+            <div class="empty-state" style="color: var(--danger);">
+                <p>❌ Error loading assignments</p>
+                <p style="font-size: 0.8rem; margin-top: 0.25rem;">${escapeHtml(error.message)}</p>
+                <p style="font-size: 0.7rem; margin-top: 0.5rem; color: var(--text-muted);">Check console for details</p>
+            </div>
+        `;
     }
 }
 
-// POST: Create new assignment/update
-async function handlePost(req, res) {
-    const { course, title, description, dueDate, type } = req.body;
-    if (!course || !title || !description || !dueDate || !type) {
-        return res.status(400).json({ success: false, error: 'Missing required fields' });
+function getStudentStatus(assign) {
+    if (assign.type === 'announcement') {
+        return `<span style="color: var(--primary-500);">📢 Update</span>`;
     }
-    try {
-        const token = await getAccessToken();
-        // Generate unique ID
-        const id = `ASSIGN_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-        const postedDate = new Date().toISOString().split('T')[0];
-        const status = 'pending';
-        const newRow = [id, course, title, description, dueDate, postedDate, status, type];
-        await appendToSheet(token, process.env.SPREADSHEET_ID, 'assignments', [newRow]);
-        res.status(200).json({ success: true, message: 'Assignment created', id });
-    } catch (error) {
-        console.error('Error creating assignment:', error);
-        res.status(500).json({ success: false, error: error.message });
+    const now = new Date();
+    const due = assign.dueDate ? new Date(assign.dueDate) : null;
+    if (!due) return `<span style="color: var(--text-muted);">No due date</span>`;
+    const diff = due - now;
+    if (diff < 0) {
+        return `<span style="color: var(--danger);">🔴 Overdue</span>`;
+    } else if (diff < 86400000 * 2) {
+        const days = Math.ceil(diff / 86400000);
+        return `<span style="color: var(--warning);">🟡 ${days} day${days > 1 ? 's' : ''} left</span>`;
+    } else {
+        const days = Math.ceil(diff / 86400000);
+        return `<span style="color: var(--success);">🟢 ${days} days left</span>`;
     }
 }
 
-// DELETE: Remove assignment by ID
-async function handleDelete(req, res) {
-    const { id } = req.query;
-    if (!id) {
-        return res.status(400).json({ success: false, error: 'ID required' });
+function openAssignmentModal(assign) {
+    const modal = document.getElementById('assignmentModal');
+    document.getElementById('modalTitle').textContent = assign.title;
+    document.getElementById('modalCourse').textContent = assign.course;
+    document.getElementById('modalDue').textContent = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    }) : '—';
+    document.getElementById('modalStatus').innerHTML = getStudentStatus(assign);
+    document.getElementById('modalDescription').textContent = assign.description || 'No description provided.';
+    modal.style.display = 'flex';
+}
+
+// Close modal
+document.getElementById('closeModalBtn')?.addEventListener('click', function() {
+    document.getElementById('assignmentModal').style.display = 'none';
+});
+
+// Click outside modal to close
+document.getElementById('assignmentModal')?.addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+
+// Escape key to close modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.getElementById('assignmentModal').style.display = 'none';
     }
-    try {
-        const token = await getAccessToken();
-        const rows = await getSheetData(token, process.env.SPREADSHEET_ID, 'assignments');
-        // Find row index (1-based for sheet) - skip header
-        let rowIndex = -1;
-        for (let i = 1; i < rows.length; i++) {
-            if (rows[i][0] === id) {
-                rowIndex = i + 1; // 1-based index for sheet
-                break;
-            }
-        }
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, error: 'Assignment not found' });
-        }
-        // Delete row by clearing it (or we can shift rows up, but we'll just clear it)
-        await clearSheetRow(token, process.env.SPREADSHEET_ID, 'assignments', rowIndex);
-        res.status(200).json({ success: true, message: 'Assignment deleted' });
-    } catch (error) {
-        console.error('Error deleting assignment:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-}
-
-// ----- Helper functions (reused) -----
-async function getAccessToken() {
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
-    const payload = {
-        iss: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        scope: 'https://www.googleapis.com/auth/spreadsheets',
-        aud: 'https://oauth2.googleapis.com/token',
-        exp: Math.floor(Date.now() / 1000) + 3600,
-        iat: Math.floor(Date.now() / 1000),
-    };
-    const assertion = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            assertion: assertion
-        })
-    });
-    const data = await response.json();
-    return data.access_token;
-}
-
-async function getSheetData(accessToken, spreadsheetId, sheetName) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}`;
-    const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-    if (!response.ok) throw new Error(`Sheets API error: ${response.statusText}`);
-    const data = await response.json();
-    return data.values || [];
-}
-
-async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}:append?valueInputOption=RAW`;
-    await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ values })
-    });
-}
-
-async function clearSheetRow(accessToken, spreadsheetId, sheetName, rowIndex) {
-    const range = `${sheetName}!A${rowIndex}:H${rowIndex}`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:clear`;
-    await fetch(url, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-}
+});
