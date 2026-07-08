@@ -977,7 +977,7 @@ async function loadAssignments() {
                 return `
                     <tr>
                         <td><strong>${escapeHtml(assign.title)}</strong></td>
-                        <td>${assign.course}</td>
+                        <td>${courseNames[assign.course] || assign.course}</td>
                         <td><span style="text-transform: capitalize;">${assign.type}</span></td>
                         <td>${dueDisplay}</td>
                         <td>${statusBadge}</td>
@@ -1079,7 +1079,13 @@ document.getElementById('createAssignmentBtn')?.addEventListener('click', () => 
 
     // Toggle due date visibility based on type
     document.getElementById('assignType').addEventListener('change', function() {
-        document.getElementById('dueDateGroup').style.display = this.value === 'announcement' ? 'none' : 'block';
+        const dueDateGroup = document.getElementById('dueDateGroup');
+        if (this.value === 'announcement') {
+            dueDateGroup.style.display = 'none';
+            document.getElementById('assignDueDate').value = '';
+        } else {
+            dueDateGroup.style.display = 'block';
+        }
     });
 
     document.getElementById('closeAssignmentModal').addEventListener('click', () => modal.remove());

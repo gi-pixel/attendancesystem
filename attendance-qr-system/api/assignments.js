@@ -64,8 +64,14 @@ async function handleGet(req, res) {
 async function handlePost(req, res) {
     const { course, title, description, dueDate, type } = req.body;
     
-    if (!course || !title || !description || !dueDate || !type) {
+    // Required fields (dueDate not required for all)
+    if (!course || !title || !description || !type) {
         return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+    
+    // For assignments, dueDate is mandatory
+    if (type === 'assignment' && !dueDate) {
+        return res.status(400).json({ success: false, error: 'Due date required for assignments' });
     }
 
     try {
@@ -73,7 +79,9 @@ async function handlePost(req, res) {
         const id = `ASSIGN_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
         const postedDate = new Date().toISOString().split('T')[0];
         const status = 'pending';
-        const newRow = [id, course, title, description, dueDate, postedDate, status, type];
+        // For announcements, store an empty string; for assignments, use the provided date
+        const dueDateValue = type === 'announcement' ? '' : dueDate;
+        const newRow = [id, course, title, description, dueDateValue, postedDate, status, type];
 
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'assignments', [newRow]);
         res.status(200).json({ success: true, message: 'Assignment created', id });

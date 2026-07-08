@@ -1,3 +1,13 @@
+const courseNames = {
+    'CCS304': 'Telecommunication Networks',
+    'CIIT302': 'Advanced Intelligent Networks',
+    'CIIT306': 'Routing and Switching Technologies',
+    'CIIT332': 'Software Defined Networks',
+    'CIIT352': 'Windows Server Administration',
+    'SCOT322': 'Sociology of Technology'
+};
+
+
 // ========== UTILITY: escapeHtml ==========
 function escapeHtml(str) {
     if (!str) return '';
@@ -65,7 +75,8 @@ async function loadStudentAssignments() {
                         <span class="type-icon">${typeIcon} ${typeLabel}</span>
                     </div>
                     <div class="card-meta">
-                        <span>📅 ${dueDisplay}</span>
+                        <span> ${courseNames[assign.course] || assign.course}</span>
+                        <span> ${dueDisplay}</span>
                         <span>${statusHtml}</span>
                     </div>
                 </div>
