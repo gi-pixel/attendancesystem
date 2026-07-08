@@ -61,6 +61,7 @@
         <button class="tab-btn" data-tab="history">History</button>
         <button class="tab-btn" data-tab="students">Students</button>
         <button class="tab-btn" data-tab="analytics">Analytics</button>
+        <button class="tab-btn" data-tab="assignments">Assignments</button>
     </div>
 
     <!-- Generate QR Tab -->
@@ -333,6 +334,67 @@
         </div>
     </div>
     </div>
+    </div>
+
+    <!-- Assignments Tab -->
+    <div class="tab-pane" id="tab-assignments">
+        <div class="card">
+            <div class="card-header">
+                <h2>Assignments & Updates</h2>
+                <p>Create and manage assignments and announcements for your courses</p>
+            </div>
+            <div class="card-body">
+                <!-- Filter and New Assignment -->
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.25rem;">Filter by Course</label>
+                        <select id="assignmentsFilterCourse" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                            <option value="">All Courses</option>
+                            <option value="CCS304">Telecommunication Networks</option>
+                            <option value="CIIT302">Advanced Intelligent Networks</option>
+                            <option value="CIIT306">Routing and Switching Technologies</option>
+                            <option value="CIIT332">Software Defined Networks</option>
+                            <option value="CIIT352">Windows Server Administration</option>
+                            <option value="SCOT322">Sociology of Technology</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.25rem;">Filter by Type</label>
+                        <select id="assignmentsFilterType" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                            <option value="">All</option>
+                            <option value="assignment">Assignments</option>
+                            <option value="announcement">Announcements</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn-primary" id="createAssignmentBtn">+ New Assignment</button>
+                    </div>
+                </div>
+
+                <!-- Assignment List (Table) -->
+                <div id="assignmentsLoading" style="display: none; text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading assignments...</p>
+                </div>
+                <div id="assignmentsTableWrapper" style="display: none;">
+                    <div class="table-wrapper">
+                        <table class="attendance-table" id="assignmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Course</th>
+                                    <th>Type</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignmentsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>

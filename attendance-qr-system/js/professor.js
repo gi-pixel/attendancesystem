@@ -1015,3 +1015,206 @@ function showUploadMessage(message, type) {
     }
 }
 
+// ========== ASSIGNMENTS MANAGEMENT ==========
+
+let allAssignments = [];
+
+// Load assignments when tab is clicked or filter changes
+document.getElementById('assignmentsFilterCourse')?.addEventListener('change', loadAssignments);
+document.getElementById('assignmentsFilterType')?.addEventListener('change', loadAssignments);
+
+async function loadAssignments() {
+    const course = document.getElementById('assignmentsFilterCourse').value;
+    const type = document.getElementById('assignmentsFilterType').value;
+    const loading = document.getElementById('assignmentsLoading');
+    const tableWrapper = document.getElementById('assignmentsTableWrapper');
+    const tbody = document.getElementById('assignmentsTableBody');
+
+    loading.style.display = 'block';
+    tableWrapper.style.display = 'none';
+
+    try {
+        let url = '/api/assignments';
+        const params = new URLSearchParams();
+        if (course) params.append('course', course);
+        if (type) params.append('type', type);
+        if (params.toString()) url += '?' + params.toString();
+
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || 'Failed to load');
+
+        allAssignments = data.assignments || [];
+
+        if (allAssignments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No assignments or announcements found.</td></tr>';
+        } else {
+            tbody.innerHTML = allAssignments.map(assign => {
+                const statusBadge = getStatusBadge(assign);
+                const dueDisplay = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString() : '—';
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(assign.title)}</strong></td>
+                        <td>${assign.course}</td>
+                        <td><span style="text-transform: capitalize;">${assign.type}</span></td>
+                        <td>${dueDisplay}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn-delete-session" data-id="${assign.id}" style="background: var(--danger);">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        tableWrapper.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading assignments:', error);
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Error loading: ${error.message}</td></tr>`;
+        tableWrapper.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+    }
+}
+
+function getStatusBadge(assign) {
+    const now = new Date();
+    const due = assign.dueDate ? new Date(assign.dueDate) : null;
+    let statusText = assign.status || 'pending';
+    let color = 'var(--text-muted)';
+    
+    if (assign.type === 'announcement') {
+        statusText = ' Announcement';
+        color = 'var(--primary-500)';
+    } else if (due) {
+        const diff = due - now;
+        if (diff < 0) {
+            statusText = '🔴 Overdue';
+            color = 'var(--danger)';
+        } else if (diff < 86400000 * 2) {
+            statusText = `🟡 ${Math.ceil(diff / 86400000)} day${Math.ceil(diff / 86400000) > 1 ? 's' : ''} left`;
+            color = 'var(--warning)';
+        } else {
+            statusText = `🟢 ${Math.ceil(diff / 86400000)} days left`;
+            color = 'var(--success)';
+        }
+    }
+    return `<span style="color: ${color}; font-weight: 500;">${statusText}</span>`;
+}
+
+// Create new assignment modal or inline form
+document.getElementById('createAssignmentBtn')?.addEventListener('click', () => {
+    // Create a simple modal form
+    const modal = document.createElement('div');
+    modal.className = 'password-modal';
+    modal.id = 'assignmentModal';
+    modal.innerHTML = `
+        <div class="password-card" style="max-width: 500px;">
+            <div class="password-header">
+                <h2>New Assignment / Update</h2>
+                <p>Fill in the details below</p>
+            </div>
+            <div class="password-body">
+                <div class="form-group">
+                    <label>Course</label>
+                    <select id="assignCourse" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                        <option value="CCS304">Telecommunication Networks</option>
+                        <option value="CIIT302">Advanced Intelligent Networks</option>
+                        <option value="CIIT306">Routing and Switching Technologies</option>
+                        <option value="CIIT332">Software Defined Networks</option>
+                        <option value="CIIT352">Windows Server Administration</option>
+                        <option value="SCOT322">Sociology of Technology</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="assignType" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                        <option value="assignment">Assignment</option>
+                        <option value="announcement">Announcement / Update</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="assignTitle" placeholder="Enter title" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="assignDescription" rows="3" placeholder="Full description..." style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-sans);"></textarea>
+                </div>
+                <div class="form-group" id="dueDateGroup">
+                    <label>Due Date</label>
+                    <input type="date" id="assignDueDate" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                </div>
+                <button id="saveAssignmentBtn" class="btn-primary" style="width: 100%;">Create</button>
+                <button id="closeAssignmentModal" style="margin-top: 0.5rem; background: none; border: none; color: var(--text-muted); cursor: pointer; width: 100%; text-align: center;">Cancel</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Toggle due date visibility based on type
+    document.getElementById('assignType').addEventListener('change', function() {
+        document.getElementById('dueDateGroup').style.display = this.value === 'announcement' ? 'none' : 'block';
+    });
+
+    document.getElementById('closeAssignmentModal').addEventListener('click', () => modal.remove());
+
+    document.getElementById('saveAssignmentBtn').addEventListener('click', async function() {
+        const course = document.getElementById('assignCourse').value;
+        const type = document.getElementById('assignType').value;
+        const title = document.getElementById('assignTitle').value.trim();
+        const description = document.getElementById('assignDescription').value.trim();
+        const dueDate = document.getElementById('assignDueDate').value;
+
+        if (!title || !description) {
+            alert('Title and description are required.');
+            return;
+        }
+        if (type === 'assignment' && !dueDate) {
+            alert('Due date is required for assignments.');
+            return;
+        }
+
+        try {
+            this.disabled = true;
+            this.textContent = 'Saving...';
+
+            const response = await fetch('/api/assignments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ course, title, description, dueDate, type })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('Assignment created successfully!');
+                modal.remove();
+                loadAssignments(); // Refresh list
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Network error: ' + error.message);
+        } finally {
+            this.disabled = false;
+            this.textContent = 'Create';
+        }
+    });
+});
+
+// Delete assignment event (delegated)
+document.getElementById('assignmentsTableBody')?.addEventListener('click', async function(e) {
+    const deleteBtn = e.target.closest('.btn-delete-session');
+    if (!deleteBtn) return;
+    const id = deleteBtn.dataset.id;
+    if (!confirm('Delete this assignment/announcement?')) return;
+    try {
+        const response = await fetch(`/api/assignments?id=${id}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (data.success) {
+            loadAssignments();
+        } else {
+            alert('Delete failed: ' + data.error);
+        }
+    } catch (error) {
+        alert('Network error');
+    }
+});
