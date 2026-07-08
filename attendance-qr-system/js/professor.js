@@ -1050,8 +1050,12 @@ document.getElementById('createAssignmentBtn')?.addEventListener('click', () => 
                 <div class="form-group">
                     <label>Type</label>
                     <select id="assignType" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
-                        <option value="assignment">Assignment</option>
-                        <option value="announcement">Announcement / Update</option>
+                            <option value="assignment">Assignments</option>
+                            <option value="announcement">Announcements</option>
+                            <option value="announcement">Midsem</option>
+                            <option value="announcement">Test</option>
+                            <option value="announcement">Presentation</option>
+                            <option value="announcement">Announcements</option>
                     </select>
                 </div>
                 <div class="form-group">
