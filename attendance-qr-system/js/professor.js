@@ -9,6 +9,16 @@ const locationCoords = document.getElementById('locationCoords');
 
 let isVerified = false;
 
+// Course name mapping
+const courseNames = {
+    'CCS304': 'Telecommunication Networks',
+    'CIIT302': 'Advanced Intelligent Networks',
+    'CIIT306': 'Routing and Switching Technologies',
+    'CIIT332': 'Software Defined Networks',
+    'CIIT352': 'Windows Server Administration',
+    'SCOT322': 'Sociology of Technology'
+};
+
 async function checkPassword() {
     // Check if already authenticated this session
     if (sessionStorage.getItem('professor_auth') === 'true') {
@@ -117,7 +127,7 @@ generateBtn.addEventListener('click', async () => {
                 height: 200
             });
             
-            document.getElementById('qrCourse').textContent = course;
+            document.getElementById('qrCourse').textContent = courseNames[course] || course;
             document.getElementById('qrSessionId').textContent = data.sessionId;
             document.getElementById('qrExpiry').textContent = new Date(data.expiresAt).toLocaleTimeString();
             qrResult.style.display = 'block';
@@ -179,7 +189,7 @@ document.getElementById('loadSessionsBtn')?.addEventListener('click', async () =
                 
                 return `
                     <tr>
-                        <td><strong>${session.course}</strong></td>
+                        <td><strong>${courseNames[session.course] || session.course}</strong></td>
                         <td><code style="font-size: 0.7rem;">${session.sessionId}</code></td>
                         <td>${expiresAt.toLocaleTimeString()}</td>
                         <td class="${timeLeft < 60000 ? 'status-danger' : 'status-good'}">${timeLeftText}</td>
@@ -199,7 +209,7 @@ document.getElementById('loadSessionsBtn')?.addEventListener('click', async () =
             btn.addEventListener('click', async (e) => {
                 const sessionId = btn.getAttribute('data-session');
                 const course = btn.getAttribute('data-course');
-                if (confirm(`Close session for ${course}? Students will no longer be able to mark attendance.`)) {
+                if (confirm(`Close session for ${courseNames[course] || course}? Students will no longer be able to mark attendance.`)) {
                     await closeSession(sessionId);
                     document.getElementById('loadSessionsBtn').click(); // Refresh list
                 }
@@ -260,7 +270,7 @@ async function loadTodayAttendance() {
         tbody.innerHTML = data.records.map(record => `
             <tr>
                 <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
-                <td>${record.course}</td>
+                <td>${courseNames[record.course] || record.course}</td>
                 <td>${record.name}</td>
                 <td>${record.index}</td>
             </tr>
@@ -300,7 +310,7 @@ document.getElementById('loadTodayBtn')?.addEventListener('click', async () => {
             tbody.innerHTML = data.records.map(record => `
                 <tr>
                     <td>${new Date(record.timestamp).toLocaleTimeString()}</td>
-                    <td>${record.course}</td>
+                    <td>${courseNames[record.course] || record.course}</td>
                     <td>${escapeHtml(record.name)}</td>
                     <td>${record.index}</td>
                 </tr>
@@ -339,7 +349,7 @@ document.getElementById('exportTodayBtn')?.addEventListener('click', async () =>
         
         let csv = 'Timestamp,Course,Name,Index Number\n';
         data.records.forEach(record => {
-            csv += `"${record.timestamp}","${record.course}","${record.name}","${record.index}"\n`;
+            csv += `"${record.timestamp}","${courseNames[record.course] || record.course}","${record.name}","${record.index}"\n`;
         });
         
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -375,7 +385,7 @@ document.getElementById('exportBtn')?.addEventListener('click', async () => {
     
     let csv = 'Timestamp,Course,Name,Index Number\n';
     data.records.forEach(record => {
-        csv += `"${record.timestamp}","${record.course}","${record.name}","${record.index}"\n`;
+        csv += `"${record.timestamp}","${courseNames[record.course] || record.course}","${record.name}","${record.index}"\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -1005,8 +1015,12 @@ function getStatusBadge(assign) {
     let color = 'var(--text-muted)';
     
     if (assign.type === 'announcement') {
-        statusText = ' Announcement';
+        statusText = '📢 Announcement';
         color = 'var(--primary-500)';
+    } else if (assign.type !== 'assignment') {
+        // For midsem, test, presentation, etc. - show as info/warning
+        statusText = `📌 ${assign.type.charAt(0).toUpperCase() + assign.type.slice(1)}`;
+        color = 'var(--warning)';
     } else if (due) {
         const diff = due - now;
         if (diff < 0) {
@@ -1050,12 +1064,11 @@ document.getElementById('createAssignmentBtn')?.addEventListener('click', () => 
                 <div class="form-group">
                     <label>Type</label>
                     <select id="assignType" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
-                            <option value="assignment">Assignments</option>
-                            <option value="announcement">Announcements</option>
-                            <option value="announcement">Midsem</option>
-                            <option value="announcement">Test</option>
-                            <option value="announcement">Presentation</option>
-                            <option value="announcement">Announcements</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="announcement">Announcement</option>
+                        <option value="midsem">Midsem</option>
+                        <option value="test">Test</option>
+                        <option value="presentation">Presentation</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1077,16 +1090,7 @@ document.getElementById('createAssignmentBtn')?.addEventListener('click', () => 
     `;
     document.body.appendChild(modal);
 
-    // Toggle due date visibility based on type
-    document.getElementById('assignType').addEventListener('change', function() {
-        const dueDateGroup = document.getElementById('dueDateGroup');
-        if (this.value === 'announcement') {
-            dueDateGroup.style.display = 'none';
-            document.getElementById('assignDueDate').value = '';
-        } else {
-            dueDateGroup.style.display = 'block';
-        }
-    });
+    // Due date is always visible - no toggle needed
 
     document.getElementById('closeAssignmentModal').addEventListener('click', () => modal.remove());
 
@@ -1101,6 +1105,7 @@ document.getElementById('createAssignmentBtn')?.addEventListener('click', () => 
             alert('Title and description are required.');
             return;
         }
+        // Only require due date for assignments
         if (type === 'assignment' && !dueDate) {
             alert('Due date is required for assignments.');
             return;

@@ -81,7 +81,7 @@ async function handlePost(req, res) {
         const status = 'pending';
         // For announcements, store an empty string; for assignments, use the provided date
         const dueDateValue = type === 'announcement' ? '' : dueDate;
-        const newRow = [id, course, title, description, dueDateValue, postedDate, status, type];
+        const newRow = [id, course, title, description, dueDateValue, postedDate || '', status, type];
 
         await appendToSheet(token, process.env.SPREADSHEET_ID, 'assignments', [newRow]);
         res.status(200).json({ success: true, message: 'Assignment created', id });
