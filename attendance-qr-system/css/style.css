@@ -603,6 +603,17 @@ body {
     background: var(--border-light);
 }
 
+[data-theme="dark"] .assignments-link {
+    background: var(--primary-soft);
+    border-color: var(--border-light);
+    color: var(--primary-400);
+}
+
+[data-theme="dark"] .assignments-link:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-300);
+}
+
 /* ==========================================================================
    21. RESPONSIVE DESIGN - MOBILE
    ========================================================================== */

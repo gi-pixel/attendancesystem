@@ -85,6 +85,49 @@ html, body {
     box-shadow: var(--shadow-2xl);
 }
 
+/* ===== ASSIGNMENTS LINK STYLES ===== */
+
+/* For footer link (card-footer) */
+.assignments-link {
+    display: inline-block;
+    color: var(--primary-600);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--primary-50);
+    border: 1px solid var(--border-light);
+    transition: var(--transition-fast);
+}
+
+.assignments-link:hover {
+    background: var(--primary-100);
+    border-color: var(--primary-300);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.assignments-link:active {
+    transform: translateY(0);
+}
+
+/* For navigation link in header (if you choose that location) */
+.assignments-nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+
+.assignments-nav-link:hover {
+    color: var(--primary-600);
+    background: var(--primary-50);
+}
+
 .card-header {
     background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
     padding: 1.5rem 1rem;
