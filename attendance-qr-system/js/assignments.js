@@ -125,8 +125,7 @@ function getStudentStatus(assign) {
 function openAssignmentModal(assign) {
     const modal = document.getElementById('assignmentModal');
     document.getElementById('modalTitle').textContent = assign.title;
-    document.getElementById('modalCourse').textContent = assign.course;
-    document.getElementById('modalDue').textContent = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', { 
+    document.getElementById('modalCourse').textContent = courseNames[assign.course] || assign.course;    document.getElementById('modalDue').textContent = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
