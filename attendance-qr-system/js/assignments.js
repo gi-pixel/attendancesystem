@@ -1,17 +1,13 @@
-const courseNames = {
-    'CCS304': 'Telecommunication Networks',
-    'CIIT302': 'Advanced Intelligent Networks',
-    'CIIT306': 'Routing and Switching Technologies',
-    'CIIT332': 'Software Defined Networks',
-    'CIIT352': 'Windows Server Administration',
-    'SCOT322': 'Sociology of Technology'
-};
+// ========== STUDENT ASSIGNMENTS PAGE ==========
 
+let courseNames = {};                 // { CCS304: "Telecommunication Networks", ... }
+let coursesReady = false;
+let studentAssignments = [];
 
 // ========== UTILITY: escapeHtml ==========
 function escapeHtml(str) {
     if (!str) return '';
-    return String(str).replace(/[&<>]/g, function(m) {
+    return String(str).replace(/[&<>]/g, function (m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -19,19 +15,35 @@ function escapeHtml(str) {
     });
 }
 
-// ========== STUDENT ASSIGNMENTS PAGE ==========
+// ========== FETCH COURSES (populate dropdown + names map) ==========
+async function loadCourses() {
+    try {
+        const res = await fetch('/api/courses');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.courses)) {
+            courseNames = {};
+            data.courses.forEach(c => { courseNames[c.code] = c.name; });
+            populateFilter(data.courses);
+            coursesReady = true;
+        }
+    } catch (err) {
+        console.error('Failed to load courses:', err);
+        // Dropdown stays with just "All Courses" — assignments still load
+    }
+}
 
-let studentAssignments = [];
+function populateFilter(courses) {
+    const sel = document.getElementById('studentAssignFilter');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">All Courses</option>' +
+        courses.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.name)}</option>`).join('');
+}
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadStudentAssignments();
-    document.getElementById('studentAssignFilter')?.addEventListener('change', loadStudentAssignments);
-});
-
+// ========== LOAD ASSIGNMENTS ==========
 async function loadStudentAssignments() {
     const course = document.getElementById('studentAssignFilter').value;
     const container = document.getElementById('studentAssignmentsContainer');
-    
+
     container.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="loading-spinner" style="margin: 0 auto; display: block;"></div><p style="color: var(--text-muted); margin-top: 0.5rem;">Loading...</p></div>';
 
     try {
@@ -42,7 +54,7 @@ async function loadStudentAssignments() {
 
         const response = await fetch(url);
         const data = await response.json();
-        
+
         if (!data.success) throw new Error(data.error || 'Failed to load');
 
         studentAssignments = data.assignments || [];
@@ -60,32 +72,30 @@ async function loadStudentAssignments() {
         // Render as cards
         container.innerHTML = studentAssignments.map(assign => {
             const statusHtml = getStudentStatus(assign);
-            const dueDisplay = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
+            const dueDisplay = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
             }) : '—';
             const typeIcon = assign.type === 'announcement' ? '📢' : '📝';
             const typeLabel = assign.type === 'announcement' ? 'Announcement' : 'Assignment';
-            
+
             return `
-                <div class="assignment-card" data-id="${assign.id}">
+                <div class="assignment-card" data-id="${escapeHtml(assign.id)}">
                     <div class="card-title">
                         <strong>${escapeHtml(assign.title)}</strong>
                         <span class="type-icon">${typeIcon} ${typeLabel}</span>
                     </div>
                     <div class="card-meta">
-                        <span> ${courseNames[assign.course] || assign.course}</span>
-                        <span> ${dueDisplay}</span>
+                        <span>📚 ${escapeHtml(courseNames[assign.course] || assign.course)}</span>
+                        <span>📅 ${dueDisplay}</span>
                         <span>${statusHtml}</span>
                     </div>
                 </div>
             `;
         }).join('');
 
-        // Add click event to each card to show modal
+        // Click card → open modal
         document.querySelectorAll('.assignment-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function () {
                 const id = this.dataset.id;
                 const assign = studentAssignments.find(a => a.id === id);
                 if (assign) openAssignmentModal(assign);
@@ -98,14 +108,21 @@ async function loadStudentAssignments() {
             <div class="empty-state" style="color: var(--danger);">
                 <p>❌ Error loading assignments</p>
                 <p style="font-size: 0.8rem; margin-top: 0.25rem;">${escapeHtml(error.message)}</p>
+                <p style="font-size: 0.7rem; margin-top: 0.5rem; color: var(--text-muted);">Check console for details</p>
             </div>
         `;
     }
 }
 
+// ========== STATUS BADGE ==========
 function getStudentStatus(assign) {
     if (assign.type === 'announcement') {
         return `<span style="color: var(--primary-500);">📢 Update</span>`;
+    }
+    if (assign.type !== 'assignment') {
+        // midsem, test, presentation, etc.
+        const label = assign.type.charAt(0).toUpperCase() + assign.type.slice(1);
+        return `<span style="color: var(--warning);">📌 ${label}</span>`;
     }
     const now = new Date();
     const due = assign.dueDate ? new Date(assign.dueDate) : null;
@@ -122,32 +139,38 @@ function getStudentStatus(assign) {
     }
 }
 
+// ========== MODAL ==========
 function openAssignmentModal(assign) {
     const modal = document.getElementById('assignmentModal');
     document.getElementById('modalTitle').textContent = assign.title;
-    document.getElementById('modalCourse').textContent = courseNames[assign.course] || assign.course;    document.getElementById('modalDue').textContent = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    document.getElementById('modalCourse').textContent = courseNames[assign.course] || assign.course;  // FULL NAME
+    document.getElementById('modalDue').textContent = assign.dueDate ? new Date(assign.dueDate).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
     }) : '—';
     document.getElementById('modalStatus').innerHTML = getStudentStatus(assign);
     document.getElementById('modalDescription').textContent = assign.description || 'No description provided.';
     modal.style.display = 'flex';
 }
 
-// Close modal
-document.getElementById('closeModalBtn')?.addEventListener('click', function() {
+document.getElementById('closeModalBtn')?.addEventListener('click', () => {
     document.getElementById('assignmentModal').style.display = 'none';
 });
 
-// Click outside modal to close
-document.getElementById('assignmentModal')?.addEventListener('click', function(e) {
+document.getElementById('assignmentModal')?.addEventListener('click', function (e) {
     if (e.target === this) this.style.display = 'none';
 });
 
-// Escape key to close modal
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         document.getElementById('assignmentModal').style.display = 'none';
     }
+});
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', async function () {
+    // Load courses first so names show correctly, then assignments
+    await loadCourses();
+    await loadStudentAssignments();
+
+    document.getElementById('studentAssignFilter')?.addEventListener('change', loadStudentAssignments);
 });

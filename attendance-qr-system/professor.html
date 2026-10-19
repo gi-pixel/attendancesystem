@@ -16,54 +16,54 @@
 </head>
 <body>
 
+<!-- Password Modal -->
 <div id="passwordModal" class="password-modal" style="display: flex;">
-
-<div class="password-card">
-    <div class="password-header">
-        <h2>Professor Access</h2>
-        <p>Enter password to access dashboard</p>
+    <div class="password-card">
+        <div class="password-header">
+            <h2>Professor Access</h2>
+            <p>Enter password to access dashboard</p>
+        </div>
+        <div class="password-body">
+            <input type="password" id="professorPassword" placeholder="Enter password" autocomplete="off">
+            <button id="verifyPasswordBtn" class="btn-primary">Verify Access</button>
+            <div id="passwordError" class="password-error"></div>
+        </div>
     </div>
-    <div class="password-body">
-        <input type="password" id="professorPassword" placeholder="Enter password" autocomplete="off">
-        <button id="verifyPasswordBtn" class="btn-primary">Verify Access</button>
-        <div id="passwordError" class="password-error"></div>
-    </div>
-</div>
 </div>
 
 <div id="dashboardContent" style="display: none;">
     <div class="dashboard-header">
-            <div class="dashboard-header-content">
-                <div class="dashboard-logo">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="dashboard-header-content">
+            <div class="dashboard-logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Class<span style="color: var(--primary-600);">Track</span></span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                     </svg>
-                    <span>Class<span style="color: var(--primary-600);">Track</span></span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                        </svg>
-                    </button>
-                </div>
+                </button>
             </div>
         </div>
+    </div>
 
 <div class="container">
     <!-- Tab Navigation -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="generate">Generate QR</button>
-        <button class="tab-btn" data-tab="sessions">Active</button>
-        <button class="tab-btn" data-tab="attendance">Today</button>
+        <button class="tab-btn" data-tab="sessions">Sessions</button>
         <button class="tab-btn" data-tab="students">Students</button>
         <button class="tab-btn" data-tab="analytics">Analytics</button>
         <button class="tab-btn" data-tab="assignments">Assignments</button>
+        <button class="tab-btn" data-tab="courses">Courses</button>
     </div>
 
-    <!-- Generate QR Tab -->
+    <!-- ==================== GENERATE QR TAB ==================== -->
     <div class="tab-pane active" id="tab-generate">
         <div class="card">
             <div class="card-header">
@@ -73,13 +73,8 @@
             <div class="card-body">
                 <div class="form-group">
                     <label>Course</label>
-                    <select id="courseSelect">
-                        <option value="CCS304">Telecommunication Networks</option>
-                        <option value="CIIT302">Advanced Intelligent Networks</option>
-                        <option value="CIIT306">Routing and Switching Technologies</option>
-                        <option value="CIIT332">Software Defined Networks</option>
-                        <option value="CIIT352">Windows Server Administration</option>
-                        <option value="SCOT322">Sociology of Technology</option>
+                    <select id="courseSelect" class="dynamic-course-select">
+                        <option value="">Loading courses...</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -100,7 +95,7 @@
                     <label>Classroom Coordinates</label>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <input type="text" id="classLat" placeholder="Latitude" style="flex: 1;">
-                        <input type="text" id="classLng" placeholder="Longitude" style= "flex: 1;">
+                        <input type="text" id="classLng" placeholder="Longitude" style="flex: 1;">
                         <button type="button" id="getCurrentLocationBtn" class="btn-secondary">Get Current</button>
                     </div>
                     <small>Set the classroom location for distance check</small>
@@ -123,31 +118,36 @@
                             <p><strong>Session ID:</strong> <span id="qrSessionId"></span></p>
                             <p><strong>Expires:</strong> <span id="qrExpiry"></span></p>
                         </div>
-                        <button class="btn-primary" id="copyLinkBtn"> Copy Attendance Link</button>
+                        <button class="btn-primary" id="copyLinkBtn">Copy Attendance Link</button>
                         <div id="copyMessage" class="copy-success"></div>
                     </div>
                 </div>
             </div>
         </div>
-
-
     </div>
 
-    <!-- Active Sessions Tab -->
+    <!-- ==================== SESSIONS TAB (MERGED) ==================== -->
     <div class="tab-pane" id="tab-sessions">
         <div class="card">
-            <div class="card-header">
-                <h2>Active Sessions</h2>
-                <p>View and manage currently active QR sessions</p>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <h2>Sessions</h2>
+                    <p>Manage live sessions and view today's attendance</p>
+                </div>
+                <button class="btn-primary" id="refreshSessionsBtn" style="white-space: nowrap;">Refresh</button>
             </div>
             <div class="card-body">
-                <button class="btn-primary" id="loadSessionsBtn" style="margin-bottom: 1rem;">Load Active Sessions</button>
-                
+
+                <!-- Section 1: Live Sessions -->
+                <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary);">
+                    🔴 Live Now <span id="liveCount" style="color: var(--text-muted); font-weight: 400;"></span>
+                </h3>
+
                 <div id="sessionsLoading" style="display: none; text-align: center; padding: 1rem;">
                     <div class="loading-spinner"></div>
                     <p>Loading sessions...</p>
                 </div>
-                
+
                 <div class="sessions-table-wrapper" id="sessionsTableWrapper" style="display: none;">
                     <table class="attendance-table" id="sessionsTable">
                         <thead>
@@ -163,25 +163,17 @@
                         <tbody id="sessionsTableBody"></tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Today's Attendance Tab -->
-    <div class="tab-pane" id="tab-attendance">
-        <div class="card">
-            <div class="card-header">
-                <h2>Today's Attendance</h2>
-                <p>View and export today's attendance records</p>
-            </div>
-            <div class="card-body">
-                <!-- Add Load Button -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                    <button class="btn-primary" id="loadTodayBtn" style="flex: 1;">Load Today</button>
-                    <button class="btn-primary" id="exportTodayBtn" style="flex: 1; background: linear-gradient(135deg, #333a38, #131b8a);">Export CSV</button>
+                <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-light);">
+
+                <!-- Section 2: Today's Records -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <h3 style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary);">
+                        📊 Today's Records <span id="todayCount" style="color: var(--text-muted); font-weight: 400;"></span>
+                    </h3>
+                    <button class="btn-primary" id="exportTodayBtn" style="background: linear-gradient(135deg, #333a38, #131b8a); font-size: 0.75rem; padding: 0.4rem 0.9rem;">Export CSV</button>
                 </div>
-                
-                <!-- Stats Cards -->
+
                 <div class="stats-grid" id="todayStats" style="display: none;">
                     <div class="stat-card">
                         <div class="stat-number" id="totalToday">0</div>
@@ -192,14 +184,12 @@
                         <div class="stat-label">Unique Students</div>
                     </div>
                 </div>
-                
-                <!-- Loading Indicator -->
+
                 <div id="todayLoading" style="display: none; text-align: center; padding: 2rem;">
                     <div class="loading-spinner"></div>
                     <p>Loading today's attendance...</p>
                 </div>
-                
-                <!-- Table -->
+
                 <div class="table-wrapper" id="todayTableWrapper" style="display: none;">
                     <table class="attendance-table" id="attendanceTable">
                         <thead>
@@ -208,103 +198,92 @@
                         <tbody id="attendanceTableBody"></tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Students Tab -->
+    <!-- ==================== STUDENTS TAB ==================== -->
     <div class="tab-pane" id="tab-students">
-    <div class="card">
-    <div class="card-header">
-        <h2>Class List Management</h2>
-        <p>Upload student index numbers and names</p>
-    </div>
-    <div class="card-body">
-        <div class="form-group">
-            <label>CSV Format</label>
-            <div class="csv-format">
-                <code>indexNumber,name</code><br>
-                <code>20240001,Emma Thompson</code><br>
-                <code>20240002,John Doe</code>
+        <div class="card">
+            <div class="card-header">
+                <h2>Class List Management</h2>
+                <p>Upload student index numbers and names</p>
             </div>
-            <small>Only index number is required for verification</small>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>CSV Format</label>
+                    <div class="csv-format">
+                        <code>indexNumber,name</code><br>
+                        <code>20240001,Emma Thompson</code><br>
+                        <code>20240002,John Doe</code>
+                    </div>
+                    <small>Only index number is required for verification</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Select CSV File</label>
+                    <input type="file" id="classListFile" accept=".csv,.xlsx,.xls">
+                </div>
+
+                <button class="btn-primary" id="uploadClassListBtn">Upload Class List</button>
+                <div id="uploadResult" style="display: none; margin-top: 1rem;"></div>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label>Select CSV File</label>
-            <input type="file" id="classListFile" accept=".csv,.xlsx,.xls">
-        </div>
-        
-        <button class="btn-primary" id="uploadClassListBtn">Upload Class List</button>            
-        <div id="uploadResult" style="display: none; margin-top: 1rem;"></div>
-    </div>
-    </div>
     </div>
 
-    <!-- Analytics Tab -->
+    <!-- ==================== ANALYTICS TAB ==================== -->
     <div class="tab-pane" id="tab-analytics">
-    <div class="card">
-    <div class="card-header">
-        <h2>Attendance Analytics</h2>
-        <p>View insights and statistics for your courses</p>
-    </div>
-    <div class="card-body">
-        <!-- Course Selector -->
-        <div class="form-group">
-            <label>Select Course</label>
-            <select id="analyticsCourseSelect">
-                <option value="CCS304">Telecommunication Networks</option>
-                <option value="CIIT302">Advanced Intelligent Networks</option>
-                <option value="CIIT306">Routing and Switching Technologies</option>
-                <option value="CIIT332">Software Defined Networks</option>
-                <option value="CIIT352">Windows Server Administration</option>
-                <option value="SCOT322">Sociology of Technology</option>
-            </select>
-        </div>
-        
-        <button class="btn-primary" id="loadAnalyticsBtn">Load Analytics</button>
-        
-        <!-- Loading Indicator -->
-        <div id="analyticsLoading" style="display: none; text-align: center; padding: 2rem;">
-            <div class="loading-spinner"></div>
-            <p>Loading analytics data...</p>
-        </div>
-        
-        <!-- Analytics Results -->
-        <div id="analyticsResults" style="display: none;">
-            <!-- Summary Cards -->
-            <div class="analytics-summary" id="analyticsSummary"></div>
-            
-            <!-- Weekly Trend Chart -->
-            <div class="analytics-card">
-                <h3>Weekly Attendance Trend</h3>
-                <div class="chart-container">
-                    <canvas id="weeklyChart"></canvas>
+        <div class="card">
+            <div class="card-header">
+                <h2>Attendance Analytics</h2>
+                <p>View insights and statistics for your courses</p>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Select Course</label>
+                    <select id="analyticsCourseSelect" class="dynamic-course-select">
+                        <option value="">Loading courses...</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="loadAnalyticsBtn">Load Analytics</button>
+
+                <div id="analyticsLoading" style="display: none; text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading analytics data...</p>
+                </div>
+
+                <div id="analyticsResults" style="display: none;">
+                    <div class="analytics-summary" id="analyticsSummary"></div>
+
+                    <div class="analytics-card">
+                        <h3>Weekly Attendance Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Student Attendance Breakdown</h3>
+                        <div class="table-wrapper">
+                            <table class="attendance-table" id="studentTable">
+                                <thead>
+                                    <tr><th>Name</th><th>Index</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr>
+                                </thead>
+                                <tbody id="studentTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">Export to CSV</button>
+                    <button class="btn-primary" id="exportAnalyticsPdfBtn" style="margin-top: 1rem; background: linear-gradient(135deg, #dc2626, #b91c1c); margin-left: 0.5rem;">Export to PDF</button>
                 </div>
             </div>
-            
-            <!-- Student List -->
-            <div class="analytics-card">
-                <h3>Student Attendance Breakdown</h3>
-                <div class="table-wrapper">
-                    <table class="attendance-table" id="studentTable">
-                        <thead>
-                            <tr><th>Name</th><th>Index</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr>
-                        </thead>
-                        <tbody id="studentTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- Export Button -->
-            <button class="btn-primary" id="exportAnalyticsBtn" style="margin-top: 1rem;">Export to CSV</button>
-            <button class="btn-primary" id="exportAnalyticsPdfBtn" style="margin-top: 1rem; background: linear-gradient(135deg, #dc2626, #b91c1c); margin-left: 0.5rem;">Export to PDF</button>
         </div>
-    </div>
-    </div>
     </div>
 
-    <!-- Assignments Tab -->
+    <!-- ==================== ASSIGNMENTS TAB ==================== -->
     <div class="tab-pane" id="tab-assignments">
         <div class="card">
             <div class="card-header">
@@ -312,18 +291,11 @@
                 <p>Create and manage assignments and announcements for your courses</p>
             </div>
             <div class="card-body">
-                <!-- Filter and New Assignment -->
                 <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                     <div style="flex: 1; min-width: 150px;">
                         <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.25rem;">Filter by Course</label>
-                        <select id="assignmentsFilterCourse" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                        <select id="assignmentsFilterCourse" class="dynamic-course-select" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
                             <option value="">All Courses</option>
-                            <option value="CCS304">Telecommunication Networks</option>
-                            <option value="CIIT302">Advanced Intelligent Networks</option>
-                            <option value="CIIT306">Routing and Switching Technologies</option>
-                            <option value="CIIT332">Software Defined Networks</option>
-                            <option value="CIIT352">Windows Server Administration</option>
-                            <option value="SCOT322">Sociology of Technology</option>
                         </select>
                     </div>
                     <div style="flex: 1; min-width: 150px;">
@@ -332,18 +304,16 @@
                             <option value="">All</option>
                             <option value="assignment">Assignments</option>
                             <option value="announcement">Announcements</option>
-                            <option value="announcement">Midsem</option>
-                            <option value="announcement">Test</option>
-                            <option value="announcement">Presentation</option>
-                            <option value="announcement">Announcements</option>
+                            <option value="midsem">Midsem</option>
+                            <option value="test">Test</option>
+                            <option value="presentation">Presentation</option>
                         </select>
                     </div>
                     <div style="display: flex; align-items: flex-end;">
-                        <button class="btn-primary" id="createAssignmentBtn">New post</button>
+                        <button class="btn-primary" id="createAssignmentBtn">+ New</button>
                     </div>
                 </div>
 
-                <!-- Assignment List (Table) -->
                 <div id="assignmentsLoading" style="display: none; text-align: center; padding: 2rem;">
                     <div class="loading-spinner"></div>
                     <p>Loading assignments...</p>
@@ -369,11 +339,59 @@
         </div>
     </div>
 
+    <!-- ==================== COURSES TAB (NEW) ==================== -->
+    <div class="tab-pane" id="tab-courses">
+        <div class="card">
+            <div class="card-header">
+                <h2>Course Management</h2>
+                <p>Add or remove courses available in the system</p>
+            </div>
+            <div class="card-body">
+
+                <!-- Add Course Form -->
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-light);">
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.25rem;">Course Code</label>
+                        <input type="text" id="newCourseCode" placeholder="e.g. CCS304" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary); text-transform: uppercase;">
+                    </div>
+                    <div style="flex: 2; min-width: 200px;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.25rem;">Course Name</label>
+                        <input type="text" id="newCourseName" placeholder="e.g. Telecommunication Networks" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border-main); border-radius: var(--radius-md); background: var(--bg-elevated); color: var(--text-primary);">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn-primary" id="addCourseBtn">+ Add Course</button>
+                    </div>
+                </div>
+
+                <div id="coursesStatus" style="margin-bottom: 1rem; font-size: 0.8rem;"></div>
+
+                <div id="coursesLoading" style="display: none; text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading courses...</p>
+                </div>
+
+                <div id="coursesTableWrapper" style="display: none;">
+                    <div class="table-wrapper">
+                        <table class="attendance-table" id="coursesTable">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Course Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coursesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="js/professor.js"></script>
-<script src="js/shared.js"></script>
 </div>
 </body>
 </html>

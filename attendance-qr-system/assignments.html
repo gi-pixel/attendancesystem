@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/student.css">
     <style>
-        /* Additional styles for assignments page */
         .assignments-container {
             max-width: 600px;
             margin: 1.5rem auto;
@@ -24,9 +23,7 @@
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-        .assignments-header h2 {
-            font-size: 1.2rem;
-        }
+        .assignments-header h2 { font-size: 1.2rem; }
         .assignments-header .back-link {
             color: var(--primary-500);
             text-decoration: none;
@@ -35,9 +32,7 @@
             align-items: center;
             gap: 0.25rem;
         }
-        .assignments-header .back-link:hover {
-            text-decoration: underline;
-        }
+        .assignments-header .back-link:hover { text-decoration: underline; }
         .assignment-card {
             background: var(--bg-elevated);
             border: 1px solid var(--border-light);
@@ -56,9 +51,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .assignment-card .card-title strong {
-            font-size: 0.95rem;
-        }
+        .assignment-card .card-title strong { font-size: 0.95rem; }
         .assignment-card .card-title .type-icon {
             font-size: 0.75rem;
             color: var(--text-muted);
@@ -121,19 +114,13 @@
 
 <div class="assignments-container">
     <div class="assignments-header">
-        <h2>Assignments & Updates</h2>
+        <h2>📚 Assignments & Updates</h2>
         <a href="index.html" class="back-link">← Back to Attendance</a>
     </div>
 
     <div style="margin-bottom: 1rem;">
         <select id="studentAssignFilter" class="filter-select">
             <option value="">All Courses</option>
-            <option value="CCS304">Telecommunication Networks</option>
-            <option value="CIIT302">Advanced Intelligent Networks</option>
-            <option value="CIIT306">Routing and Switching Technologies</option>
-            <option value="CIIT332">Software Defined Networks</option>
-            <option value="CIIT352">Windows Server Administration</option>
-            <option value="SCOT322">Sociology of Technology</option>
         </select>
     </div>
 

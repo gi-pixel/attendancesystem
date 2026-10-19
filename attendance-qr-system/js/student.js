@@ -17,17 +17,27 @@ const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get('session');
 const courseFromUrl = urlParams.get('course');
 
-// Display course name
-if (courseFromUrl && courseDisplay) {
-    const courseNames = {
-        'CCS304': 'Telecommunication Networks',
-        'CIIT302': 'Advanced Intelligent Networks',
-        'CIIT306': 'Routing and Switching Technologies',
-        'CIIT332': 'Software Defined Networks',
-        'CIIT352': 'Windows Server Administration',
-        'SCOT322': 'Sociology of Technology'
-    };
-    courseDisplay.value = courseNames[courseFromUrl] || courseFromUrl;
+// ========== GLOBAL COURSE NAME MAP (dynamic) ==========
+let courseNames = {};
+
+async function loadCourseNames() {
+    try {
+        const res = await fetch('/api/courses');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.courses)) {
+            data.courses.forEach(c => { courseNames[c.code] = c.name; });
+        }
+    } catch (err) {
+        console.error('Failed to load course names:', err);
+    }
+}
+
+// ========== DISPLAY COURSE NAME ==========
+async function initCourseDisplay() {
+    await loadCourseNames();
+    if (courseFromUrl && courseDisplay) {
+        courseDisplay.value = courseNames[courseFromUrl] || courseFromUrl;
+    }
 }
 
 // ========== GEOLOCATION FUNCTIONS ==========
@@ -229,7 +239,7 @@ async function checkSessionStatus() {
             startCountdown(data.expiresAt);
         }
         
-        // Store location requirement (moved inside try block)
+        // Store location requirement
         locationRequired = data.requireLocation === 'YES';
         if (locationRequired && data.classLat && data.classLng) {
             classroomLocation = { lat: parseFloat(data.classLat), lng: parseFloat(data.classLng) };
@@ -292,7 +302,6 @@ async function submitAttendance() {
             if (locationStatus) {
                 locationStatus.innerHTML = `✅ Location verified (${Math.round(distance)}m from classroom)`;
             }
-            // Save user location for the API
             userLocation = location;
         } catch (error) {
             if (locationStatus) {
@@ -308,7 +317,6 @@ async function submitAttendance() {
     showMessage(messageDiv, 'Recording attendance...', 'info');
     
     try {
-        // Now we just call mark-attendance – it will verify the student internally
         const response = await fetch('/api/mark-attendance', {
             method: 'POST',
             headers: {
@@ -333,7 +341,6 @@ async function submitAttendance() {
             studentIndex.value = '';
             clearFieldErrors();
         } else {
-            // The API now returns a clear message (e.g., "You are not a registered student...")
             showMessage(messageDiv, data.message || 'Failed to record attendance', 'error');
         }
     } catch (error) {
@@ -344,6 +351,7 @@ async function submitAttendance() {
         submitBtn.textContent = 'Submit Attendance';
     }
 }
+
 // ========== EVENT LISTENERS ==========
 
 if (submitBtn) {
@@ -362,6 +370,7 @@ if (studentName) {
     });
 }
 
-// Initialize
+// ========== INITIALIZE ==========
 setupRealTimeValidation();
-checkSessionStatus();
+initCourseDisplay();      // Fire-and-forget; updates the display when courses load
+checkSessionStatus();     // Fire-and-forget; independent

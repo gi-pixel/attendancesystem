@@ -1,69 +1,52 @@
-function showMessage(element, text, type) {
-    if (!element) return;
-    element.textContent = text;
-    element.className = `message ${type}`;
-    setTimeout(() => {
-        element.className = 'message';
-    }, 5000);
-}
-
-
-function formatTime(date) {
-    return new Date(date).toLocaleTimeString();
-}
-
-// ========== DARK MODE TOGGLE ==========
-(function() {
-    // Check for saved theme preference
+// ========== DARK MODE TOGGLE (attribute-based) ==========
+(function () {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    // Apply theme on page load
-    if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark-mode');
-    } else if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark-mode');
-    } else if (prefersDark.matches) {
-        document.documentElement.classList.add('dark-mode');
-    }
-    
-    // Toggle theme function
-    window.toggleTheme = function() {
-        document.documentElement.classList.toggle('dark-mode');
-        const isDark = document.documentElement.classList.contains('dark-mode');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        
-        // Update toggle button icon if needed
-        const toggleBtn = document.getElementById('themeToggle');
-        if (toggleBtn) {
-            const svg = toggleBtn.querySelector('svg');
-            if (svg) {
-                if (isDark) {
-                    svg.innerHTML = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
-                } else {
-                    svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-                }
-            }
+
+    // Apply initial theme
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.classList.add('dark-mode'); // legacy fallback
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.classList.remove('dark-mode');
         }
+        updateToggleIcon(theme);
+    }
+
+    // Set icon in the toggle button
+    function updateToggleIcon(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        const svg = btn.querySelector('svg');
+        if (!svg) return;
+        if (theme === 'dark') {
+            // Sun icon (to switch to light)
+            svg.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+        } else {
+            // Moon icon (to switch to dark)
+            svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        }
+    }
+
+    // Resolve initial theme
+    let initialTheme = savedTheme || (prefersDark.matches ? 'dark' : 'light');
+    applyTheme(initialTheme);
+
+    // Toggle handler
+    window.toggleTheme = function () {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
     };
-    
-    // Add click event to theme toggle button
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', window.toggleTheme);
-    }
-    
-    // Update icon on page load
-    const isDark = document.documentElement.classList.contains('dark-mode');
-    const toggleBtn = document.getElementById('themeToggle');
-    if (toggleBtn) {
-        const svg = toggleBtn.querySelector('svg');
-        if (svg) {
-            if (isDark) {
-                svg.innerHTML = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
-            } else {
-                svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-            }
-        }
-    }
+
+    // Attach click listener once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.addEventListener('click', window.toggleTheme);
+        // Re-apply to sync icon state on load
+        applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+    });
 })();
