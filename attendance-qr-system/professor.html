@@ -6,6 +6,17 @@
     <title>Professor Dashboard | ClassTrack Attendance</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script>
+        (function(){
+            try {
+                var t = localStorage.getItem('theme');
+                if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch(e) {}
+        })();
+        </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/professor.css">
     <link rel="stylesheet" href="css/style.css">
@@ -392,6 +403,7 @@
 </div>
 
 <script src="js/professor.js"></script>
+<script src="js/shared.js"></script>
 </div>
 </body>
 </html>
