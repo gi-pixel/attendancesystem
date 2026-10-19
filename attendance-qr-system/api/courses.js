@@ -136,17 +136,23 @@ async function getAccessToken() {
 }
 
 async function getSheetData(accessToken, spreadsheetId, sheetName) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}`;
+    const encodedRange = encodeURIComponent(`'${sheetName}'`);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}`;
     const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
     });
-    if (!response.ok) throw new Error(`Sheets API error: ${response.statusText}`);
+    if (!response.ok) {
+        const body = await response.text();
+        console.error(`[Sheets] FAILED sheet="${sheetName}" status=${response.status} body=${body}`);
+        throw new Error(`Sheets API error for "${sheetName}": ${response.status} — ${body}`);
+    }
     const data = await response.json();
     return data.values || [];
 }
 
 async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}:append?valueInputOption=RAW`;
+    const encodedRange = encodeURIComponent(`'${sheetName}'`);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:append?valueInputOption=RAW`;
     await fetch(url, {
         method: 'POST',
         headers: {
@@ -158,10 +164,11 @@ async function appendToSheet(accessToken, spreadsheetId, sheetName, values) {
 }
 
 async function clearSheetRow(accessToken, spreadsheetId, sheetName, rowIndex) {
-    const range = `${sheetName}!A${rowIndex}:B${rowIndex}`;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:clear`;
+    const encodedRange = encodeURIComponent(`'${sheetName}'!A${rowIndex}:B${rowIndex}`);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:clear`;
     await fetch(url, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${accessToken}` }
     });
 }
+
